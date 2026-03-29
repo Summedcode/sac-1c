@@ -1,3 +1,10 @@
+/**
+ * 🚀 PROJETO: SAC-1C (Student Activity Control)
+ * 👤 AUTOR: Rafael Magalhães
+ * 📅 VERSÃO: 1.0.0
+ * 🛠️ DESCRIÇÃO: Handlers de comandos de tarefas para WhatsApp
+ */
+
 // Handler de comandos de tarefas
 
 const {

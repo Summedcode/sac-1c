@@ -1,4 +1,11 @@
 /**
+ * 🚀 PROJETO: SAC-1C (Student Activity Control)
+ * 👤 AUTOR: Rafael Magalhães
+ * 📅 VERSÃO: 1.0.0
+ * 🛠️ DESCRIÇÃO: Sistema de Migrations (versionamento do banco)
+ */
+
+/**
  * Sistema de Migrations (versionamento do banco)
  * Permite atualizar o schema sem perder dados
  */
@@ -45,6 +52,20 @@ const MIGRATIONS = {
         CREATE INDEX IF NOT EXISTS idx_tarefas_criado_por ON tarefas(criado_por);
         CREATE INDEX IF NOT EXISTS idx_tarefas_ativo ON tarefas(ativo);
         CREATE INDEX IF NOT EXISTS idx_lembretes_ativo ON lembretes(ativo);
+      `)
+    }
+  },
+
+  2: {
+    id: 2,
+    descricao: 'Criação da tabela de bloqueios para o SAC',
+    up: (db) => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS bloqueios (
+          usuario_id TEXT PRIMARY KEY,
+          expira_em TEXT,
+          bloqueado_em TEXT DEFAULT (datetime('now', 'localtime'))
+        );
       `)
     }
   },

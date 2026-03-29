@@ -1,3 +1,10 @@
+/**
+ * 🚀 PROJETO: SAC-1C (Student Activity Control)
+ * 👤 AUTOR: Rafael Magalhães
+ * 📅 VERSÃO: 1.0.0
+ * 🛠️ DESCRIÇÃO: Core do Bot de WhatsApp - Handlers e Eventos
+ */
+
 const { Client, LocalAuth } = require('whatsapp-web.js')
 const qrcode = require('qrcode-terminal')
 
@@ -20,6 +27,7 @@ const {
 } = require('./handlers/tarefas')
 const { handleLembrete, handleLembretes, handleDelLembrete } = require('./handlers/lembretes')
 const { handleSim, handleNao } = require('./handlers/confirmacao')
+const { handleSAC } = require('./handlers/sac')
 
 // Utilitários
 const { inicializarScheduler } = require('./scheduler')
@@ -36,7 +44,8 @@ const client = new Client({
       '--no-zygote',
       '--disable-gpu'
     ]
-  }
+  },
+  qrMaxRetries: 5
 })
 
 // ─────────────────────────────────────
@@ -58,6 +67,7 @@ client.on('ready', () => {
 // ─────────────────────────────────────
 
 client.on('message', async (msg) => {
+  console.log('📨 Mensagem recebida:', msg.body, '| De:', msg.from)
   try {
     const texto = msg.body.toLowerCase().trim()
 
@@ -88,6 +98,10 @@ client.on('message', async (msg) => {
     // Comandos de confirmação
     if (texto === '!sim') return await handleSim(msg)
     if (texto === '!não') return await handleNao(msg)
+
+    // 🤖 Ativação por menção (SAC)
+    if (texto.includes('sac')) return await handleSAC(msg)
+
   } catch (erro) {
     console.error('❌ Erro ao processar mensagem:', erro)
     try {
@@ -98,13 +112,15 @@ client.on('message', async (msg) => {
   }
 })
 
+console.log('⏳ Inicializando motor do WhatsApp... Por favor, aguarde.');
+
 client.initialize().catch(err => {
   console.error('\n❌ ERRO CRÍTICO NO WHATSAPP:', err.message)
   console.error('💡 DICA: Verifique se não há outro terminal aberto ou processos do Chrome travados.\n')
   process.exit(1)
 })
 
-console.log('� Aguardando QR code para conectar ao WhatsApp...')
+console.log('📲 Aguardando geração do QR Code...')
 console.log(`\n📊 Status do banco: ${JSON.stringify(statusBanco(), null, 2)}\n`)
 
 module.exports = { client }

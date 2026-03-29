@@ -1,11 +1,18 @@
 /**
+ * 🚀 PROJETO: SAC-1C (Student Activity Control)
+ * 👤 AUTOR: Rafael Magalhães
+ * 📅 VERSÃO: 1.0.0
+ * 🛠️ DESCRIÇÃO: Rotas da API para Integração com Gemini (Google)
+ */
+
+/**
  * Rotas da API para Integração com Gemini (Google)
  * Similar aos endpoints IA, mas específico para Gemini
  */
 
 const express = require('express')
 const router = express.Router()
-const { adicionarTarefa, getEstatisticas, obterProgressoDetalhado } = require('../../tasks/taskService')
+const { adicionarTarefa, getEstatisticas } = require('../../tasks/taskService')
 const { obterBanco } = require('../../database')
 const { registrarAcao } = require('../../utils/logger')
 
@@ -112,7 +119,7 @@ router.post('/gerar-tarefas', verificarToken, (req, res, next) => {
     // Resposta
     res.status(201).json({
       sucesso: true,
-      modelo: 'gemini-1.5-flash',
+      modelo: 'gemini-2.0-flash',
       origem: 'gemini_api',
       total_requisitado: tarefas.length,
       criadas: resultados.length,
@@ -142,7 +149,7 @@ router.get('/progresso', verificarToken, (req, res, next) => {
     const db = obterBanco()
     const por_materia = db.prepare(`
       SELECT materia, COUNT(*) as total, SUM(concluida) as feitas 
-      FROM tarefas WHERE ativo = 1 GROUP BY materia
+      FROM tarefas GROUP BY materia
     `).all()
 
     res.json({
@@ -153,6 +160,55 @@ router.get('/progresso', verificarToken, (req, res, next) => {
     })
 
     registrarAcao('Gemini', 'consulta_progresso', 'Progresso consultado')
+  } catch (erro) {
+    next(erro)
+  }
+})
+
+// ─────────────────────────────────────
+// POST /api/gemini/resumo — Gera resumo formatado para IA
+// ─────────────────────────────────────
+router.post('/resumo', verificarToken, (req, res, next) => {
+  try {
+    // Segurança: evita crash se o body estiver vazio
+    const { tipo = 'semana' } = req.body || {}
+    const db = obterBanco()
+    let tarefas
+    const hoje = new Date().toISOString().split('T')[0]
+
+    if (tipo === 'hoje') {
+      tarefas = db.prepare(`
+        SELECT * FROM tarefas 
+        WHERE data_vencimento = ? AND concluida = 0 
+        ORDER BY prioridade DESC
+      `).all(hoje)
+    } else {
+      const semana = new Date()
+      semana.setDate(semana.getDate() + 7)
+      const fimSemana = semana.toISOString().split('T')[0]
+
+      tarefas = db.prepare(`
+        SELECT * FROM tarefas 
+        WHERE data_vencimento BETWEEN ? AND ? AND concluida = 0 
+        ORDER BY data_vencimento, prioridade DESC
+      `).all(hoje, fimSemana)
+    }
+
+    // Formata o resumo para a IA
+    const prompt = `
+# Tarefas de Estudo - ${tipo.toUpperCase()}
+
+${tarefas.map((t, i) => `
+${i + 1}. **${t.materia.toUpperCase()}** - ${t.tipo}
+   - Descrição: ${t.descricao}
+   - Vencimento: ${t.data_vencimento || 'sem data'}
+   - Prioridade: ${t.prioridade}
+`).join('\n')}
+
+Por favor, analise este progresso e sugira melhorias.
+`
+    res.json({ sucesso: true, tipo, total_tarefas: tarefas.length, prompt })
+    registrarAcao('Gemini', 'gerar_resumo', `Resumo ${tipo} gerado (${tarefas.length} tarefas)`)
   } catch (erro) {
     next(erro)
   }
@@ -209,4 +265,7 @@ router.post('/webhook', verificarToken, (req, res, next) => {
   }
 })
 
-module.exports = router
+module.exports = {
+  router,
+  verificarToken
+};

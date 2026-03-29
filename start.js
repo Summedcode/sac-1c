@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 
 /**
+ * 🚀 PROJETO: SAC-1C (Student Activity Control)
+ * 👤 AUTOR: Rafael Magalhães
+ * 📅 VERSÃO: 1.0.0
+ * 🛠️ DESCRIÇÃO: Ponto de entrada principal - Inicia Bot WhatsApp e API REST
+ */
+
+/**
  * Sistema Completo: WhatsApp Bot + API REST
  * 
  * Executa:
@@ -31,16 +38,17 @@ const { iniciarAPI } = require('./src/api')
 async function bootstrap() {
   try {
     // 1. Banco de Dados primeiro (Síncrono)
-    inicializarBanco()
-    console.log('✅ Banco de dados pronto')
+    console.log('📦 1. Preparando banco de dados...');
+    inicializarBanco();
+    console.log('   ✅ Banco de dados e migrations prontos');
 
     // 2. API REST
-    await iniciarAPI()
-    // O log de porta já acontece dentro de iniciarAPI
+    console.log('📡 2. Iniciando servidor Express...');
+    await iniciarAPI();
 
     // 3. Bot WhatsApp
-    console.log('\n🤖 Iniciando WhatsApp Bot...')
-    require('./src/index')
+    console.log('\n🤖 3. Conectando ao WhatsApp (Puppeteer)...');
+    require('./src/index');
   } catch (erro) {
     console.error('❌ Erro na inicialização:', erro.message)
     process.exit(1)

@@ -1,4 +1,11 @@
 /**
+ * 🚀 PROJETO: SAC-1C (Student Activity Control)
+ * 👤 AUTOR: Rafael Magalhães
+ * 📅 VERSÃO: 1.0.0
+ * 🛠️ DESCRIÇÃO: Inicialização e Configuração do Banco de Dados SQLite
+ */
+
+/**
  * Inicialização e Configuração do SQLite
  * Ponto único de entrada para o banco de dados
  */

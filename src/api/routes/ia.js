@@ -1,4 +1,11 @@
 /**
+ * 🚀 PROJETO: SAC-1C (Student Activity Control)
+ * 👤 AUTOR: Rafael Magalhães
+ * 📅 VERSÃO: 1.0.0
+ * 🛠️ DESCRIÇÃO: Rotas da API para Integração com IA/LLM (Legado)
+ */
+
+/**
  * Rotas da API para Integração com IA/LLM
  * Recebe dados gerados por um modelo de IA e salva no banco
  */
@@ -103,7 +110,7 @@ router.post('/gerar-tarefas', (req, res) => {
       }
     })
   } catch (erro) {
-    res.status(500).json({ erro: erro.message })
+    next(erro)
   }
 })
 

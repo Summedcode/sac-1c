@@ -1,3 +1,10 @@
+/**
+ * 🚀 PROJETO: SAC-1C (Student Activity Control)
+ * 👤 AUTOR: Rafael Magalhães
+ * 📅 VERSÃO: 1.0.0
+ * 🛠️ DESCRIÇÃO: Core de serviços para Tarefas, Lembretes e Moderação
+ */
+
 // Importa o banco de dados
 const { obterBanco } = require('../database')
 
@@ -27,7 +34,6 @@ function getTarefasHoje() {
     SELECT * FROM tarefas
     WHERE data_vencimento = ?
     AND concluida = 0
-    AND ativo = 1
     ORDER BY materia
   `).all(hoje)
 }
@@ -46,7 +52,6 @@ function getTarefasSemana() {
     SELECT * FROM tarefas
     WHERE data_vencimento BETWEEN ? AND ?
     AND concluida = 0
-    AND ativo = 1
     ORDER BY data_vencimento, materia
   `).all(hoje, fimSemana)
 }
@@ -59,7 +64,6 @@ function getProvas() {
     SELECT * FROM tarefas
     WHERE tipo = 'prova'
     AND concluida = 0
-    AND ativo = 1
     ORDER BY data_vencimento
   `).all()
 }
@@ -90,8 +94,7 @@ function formatarTarefas(tarefas) {
 // ─────────────────────────────────────
 function deletarTarefaPorId(id) {
   const stmt = getDb().prepare(`
-    UPDATE tarefas
-    SET ativo = 0
+    DELETE FROM tarefas
     WHERE id = ?
   `)
 
@@ -113,12 +116,12 @@ function deletarTarefasAntigas(diasAntigos = 30, apenasConcluidasantigas = true)
   dataLimite.setDate(dataLimite.getDate() - diasAntigos)
   const dataStr = dataLimite.toISOString().split('T')[0]
 
-  let query = 'UPDATE tarefas SET ativo = 0 WHERE data_vencimento < ?'
+  let query = 'DELETE FROM tarefas WHERE data_vencimento < ?'
   
   // Se true, deleta só as concluídas antigas
   // Se false, deleta TODAS as antigas (concluídas e não concluídas)
   if (apenasConcluidasantigas) {
-    query += ' AND concluida = 1 AND ativo = 1'
+    query += ' AND concluida = 1'
   }
 
   const stmt = getDb().prepare(query)
@@ -134,10 +137,10 @@ function deletarTarefasAntigas(diasAntigos = 30, apenasConcluidasantigas = true)
 // DELETAR tarefas de uma matéria específica
 // ─────────────────────────────────────
 function deletarTarefasPorMateria(materia, apenasConcluidasantigas = true) {
-  let query = 'UPDATE tarefas SET ativo = 0 WHERE materia = ?'
+  let query = 'DELETE FROM tarefas WHERE materia = ?'
   
   if (apenasConcluidasantigas) {
-    query += ' AND concluida = 1 AND ativo = 1'
+    query += ' AND concluida = 1'
   }
 
   const stmt = getDb().prepare(query)
@@ -168,7 +171,6 @@ function adicionarLembrete(mensagem, criadoPor) {
 function getLembretes() {
   return getDb().prepare(`
     SELECT id, mensagem, criado_em FROM lembretes
-    WHERE ativo = 1
     ORDER BY criado_em DESC
   `).all()
 }
@@ -191,8 +193,7 @@ function formatarLembretes(lembretes) {
 // ─────────────────────────────────────
 function deletarLembrete(id) {
   const stmt = getDb().prepare(`
-    UPDATE lembretes
-    SET ativo = 0
+    DELETE FROM lembretes
     WHERE id = ?
   `)
 
@@ -229,13 +230,13 @@ function marcarConcluida(id) {
 // BUSCAR estatísticas de tarefas
 // ─────────────────────────────────────
 function getEstatisticas() {
-  const total = getDb().prepare('SELECT COUNT(*) as count FROM tarefas WHERE ativo = 1').get()
-  const concluidas = getDb().prepare('SELECT COUNT(*) as count FROM tarefas WHERE concluida = 1 AND ativo = 1').get()
-  const pendentes = getDb().prepare('SELECT COUNT(*) as count FROM tarefas WHERE concluida = 0 AND ativo = 1').get()
+  const total = getDb().prepare('SELECT COUNT(*) as count FROM tarefas').get()
+  const concluidas = getDb().prepare('SELECT COUNT(*) as count FROM tarefas WHERE concluida = 1').get()
+  const pendentes = getDb().prepare('SELECT COUNT(*) as count FROM tarefas WHERE concluida = 0').get()
   const hoje = getDb().prepare(`
     SELECT COUNT(*) as count FROM tarefas
     WHERE data_vencimento = ?
-    AND concluida = 0 AND ativo = 1
+    AND concluida = 0
   `).get(new Date().toISOString().split('T')[0])
 
   return {
@@ -246,6 +247,33 @@ function getEstatisticas() {
   }
 }
 
+function bloquearUsuario(usuarioId, minutos = null) {
+  const expiraEm = minutos ? new Date(Date.now() + minutos * 60000).toISOString() : null;
+  const stmt = obterBanco().prepare(`
+    INSERT OR REPLACE INTO bloqueios (usuario_id, expira_em)
+    VALUES (?, ?)
+  `);
+  stmt.run(usuarioId, expiraEm);
+  return { sucesso: true, expiraEm };
+}
+
+function desbloquearUsuario(usuarioId) {
+  const stmt = obterBanco().prepare('DELETE FROM bloqueios WHERE usuario_id = ?');
+  const resultado = stmt.run(usuarioId);
+  return { sucesso: resultado.changes > 0 };
+}
+
+function isUsuarioBloqueado(usuarioId) {
+  const block = obterBanco().prepare('SELECT expira_em FROM bloqueios WHERE usuario_id = ?').get(usuarioId);
+  if (!block) return false;
+  if (!block.expira_em) return true;
+  
+  const aindaBloqueado = new Date(block.expira_em) > new Date();
+  if (!aindaBloqueado) {
+    desbloquearUsuario(usuarioId);
+  }
+  return aindaBloqueado;
+}
 
 // Exporta todas as funções para outros arquivos usarem
 module.exports = {
@@ -262,5 +290,8 @@ module.exports = {
   formatarLembretes,
   deletarLembrete,
   marcarConcluida,
-  getEstatisticas
+  getEstatisticas,
+  bloquearUsuario,
+  desbloquearUsuario,
+  isUsuarioBloqueado
 }

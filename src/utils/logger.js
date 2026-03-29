@@ -1,3 +1,10 @@
+/**
+ * 🚀 PROJETO: SAC-1C (Student Activity Control)
+ * 👤 AUTOR: Rafael Magalhães
+ * 📅 VERSÃO: 1.0.0
+ * 🛠️ DESCRIÇÃO: Sistema de Auditoria e Logging (Ações e Erros)
+ */
+
 const fs = require('fs')
 const path = require('path')
 

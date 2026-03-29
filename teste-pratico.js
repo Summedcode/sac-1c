@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 
 /**
+ * 🚀 PROJETO: SAC-1C (Student Activity Control)
+ * 👤 AUTOR: Rafael Magalhães
+ * 📅 VERSÃO: 1.0.0
+ * 🛠️ DESCRIÇÃO: Script Prático de Teste - Validação de Endpoints e IA
+ */
+
+/**
  * Script Prático de Teste
  * 
  * Testa TODOS os endpoints da API sem precisar de Postman
@@ -10,11 +17,15 @@
  */
 
 const http = require('http')
+const path = require('path')
+// Carrega .env para sincronizar o token de segurança
+require('dotenv').config({ path: path.join(__dirname, '.env') })
 
 // Helper para fazer requisições HTTP
 function fazerRequisicao(metodo, caminho, dados = null) {
   return new Promise((resolve, reject) => {
-    const token = 'sac1c_bot_2025' // Token padrão definido no seu .env
+    // Usa o token do .env ou o padrão do sistema
+    const token = process.env.API_TOKEN || 'sac1c_bot_2025' 
     const opcoes = {
       hostname: 'localhost',
       port: 3000,
@@ -94,8 +105,10 @@ ${cores.azul}╔═════════════════════�
         passaram++
         return true
       } else {
+        // Correção: Garante que estamos logando o objeto correto
+        const erroMsg = resultado.body?.erro || resultado.body || 'Erro desconhecido'
         console.log(`  ${cores.vermelho}❌ Status ${resultado.status}${cores.reset}`)
-        console.log(`  ${cores.vermelho}Erro: ${JSON.stringify(resultado.body)}${cores.reset}`)
+        console.log(`  ${cores.vermelho}Erro: ${JSON.stringify(erroMsg)}${cores.reset}`)
         falharam++
         return false
       }
@@ -173,10 +186,14 @@ ${cores.azul}╔═════════════════════�
       passaram++
     } else {
       console.log(`  ${cores.vermelho}❌ Status ${respostaConcluir.status}${cores.reset}`)
+      const erroMsg = respostaConcluir.body?.erro || respostaConcluir.body || 'Erro desconhecido'
+      console.log(`  ${cores.vermelho}Erro: ${JSON.stringify(erroMsg)}${cores.reset}`)
       falharam++
     }
   } else {
+    const erroMsg = respostaCreate.body?.erro || respostaCreate.body || 'Erro desconhecido'
     console.log(`  ${cores.vermelho}❌ Status ${respostaCreate.status}${cores.reset}`)
+    console.log(`  ${cores.vermelho}Erro: ${JSON.stringify(erroMsg)}${cores.reset}`)
     falharam++
   }
 
@@ -208,44 +225,13 @@ ${cores.azul}╔═════════════════════�
   console.log(`\n${cores.azul}━━━ 4. INTEGRAÇÃO COM IA/LLM ━━━${cores.reset}`)
 
   // 4.1 Analisar Progresso
-  console.log(`\n${cores.amarelo}→ Analisar progresso${cores.reset}`)
-  console.log(`  ${cores.cinza}GET /api/gemini/progresso${cores.reset}`)
-  const respostaProgresso = await fazerRequisicao('GET', '/api/gemini/progresso')
-  if (respostaProgresso.status === 200) {
-    console.log(`  ${cores.verde}✅ Status ${respostaProgresso.status}${cores.reset}`)
-    if (respostaProgresso.body.dados) {
-      console.log(
-        `  ${cores.cinza}Total: ${respostaProgresso.body.dados.total} | Concluídas: ${respostaProgresso.body.dados.concluidas} | Progresso: ${respostaProgresso.body.dados.percentual}%${cores.reset}`
-      )
-    }
-    passaram++
-  } else {
-    console.log(`  ${cores.vermelho}❌ Status ${respostaProgresso.status}${cores.reset}`)
-    falharam++
-  }
+  await executarTeste('Analisar progresso', 'GET', '/api/gemini/progresso')
 
   // 4.2 Gerar Resumo
-  console.log(`\n${cores.amarelo}→ Gerar resumo para IA processar${cores.reset}`)
-  console.log(`  ${cores.cinza}POST /api/gemini/webhook${cores.reset}`)
-  const respostaResumo = await fazerRequisicao('POST', '/api/gemini/webhook', { acao: 'analisar-progresso' })
-  if (respostaResumo.status === 200 || respostaResumo.status === 201) {
-    console.log(`  ${cores.verde}✅ Status ${respostaResumo.status}${cores.reset}`)
-    if (respostaResumo.body.prompt) {
-      const snippet = respostaResumo.body.prompt.slice(0, 80)
-      console.log(`  ${cores.cinza}Prompt gerado (snippet): ${snippet}...${cores.reset}`)
-    }
-    passaram++
-  } else {
-    console.log(`  ${cores.vermelho}❌ Status ${respostaResumo.status}${cores.reset}`)
-    falharam++
-  }
+  await executarTeste('Gerar resumo para IA processar', 'POST', '/api/gemini/resumo', { tipo: 'hoje' })
 
   // 4.3 Gerar Tarefas (Principal!)
-  console.log(`\n${cores.amarelo}→ Simular IA gerando tarefas${cores.reset}`)
-  console.log(`  ${cores.cinza}POST /api/gemini/gerar-tarefas${cores.reset}`)
-
   const tarefasIA = {
-    token_verificacao: 'sac1c_bot_2025',
     tarefas: [
       {
         descricao: 'Fazer exercícios de Geometria pág 45-50',
@@ -253,31 +239,10 @@ ${cores.azul}╔═════════════════════�
         tipo: 'tarefa',
         prioridade: 'alta',
         data_vencimento: dataFormatada
-      },
-      {
-        descricao: 'Ler capítulo 4 sobre Renascimento',
-        materia: 'História',
-        tipo: 'estudo',
-        prioridade: 'normal',
-        data_vencimento: dataFormatada
       }
     ]
   }
-
-  const respostaIA = await fazerRequisicao('POST', '/api/gemini/gerar-tarefas', tarefasIA)
-  if (respostaIA.status === 201) {
-    console.log(`  ${cores.verde}✅ Status ${respostaIA.status}${cores.reset}`)
-    console.log(
-      `  ${cores.verde}${respostaIA.body.criadas} tarefas criadas com sucesso!${cores.reset}`
-    )
-    if (respostaIA.body.erros > 0) {
-      console.log(`  ${cores.amarelo}⚠️ ${respostaIA.body.erros} erro(s) durante criação${cores.reset}`)
-    }
-    passaram++
-  } else {
-    console.log(`  ${cores.vermelho}❌ Status ${respostaIA.status}${cores.reset}`)
-    falharam++
-  }
+  await executarTeste('Simular IA gerando tarefas', 'POST', '/api/gemini/gerar-tarefas', tarefasIA)
 
   // ─────────────────────────────────────
   // 5. RESUMO FINAL

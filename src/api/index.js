@@ -1,4 +1,11 @@
 /**
+ * 🚀 PROJETO: SAC-1C (Student Activity Control)
+ * 👤 AUTOR: Rafael Magalhães
+ * 📅 VERSÃO: 1.0.0
+ * 🛠️ DESCRIÇÃO: Configuração e inicialização do servidor Express (API)
+ */
+
+/**
  * Servidor Express da API
  * Endpoints REST para tarefas, lembretes e integração com IA
  */
@@ -9,7 +16,7 @@ const { obterBanco } = require('../database')
 const rotasTarefas = require('./routes/tarefas')
 const rotasLembretes = require('./routes/lembretes')
 const rotasIA = require('./routes/ia')
-const rotasGemini = require('./routes/gemini')
+const { router: rotasGemini } = require('./routes/gemini')
 const errorHandler = require('../middleware/errorHandler')
 
 const PORT = process.env.API_PORT || 3000
