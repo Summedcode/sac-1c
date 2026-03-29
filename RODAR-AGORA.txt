@@ -1,0 +1,55 @@
+INSTRUCOES - RODAR GEMINI AGORA
+
+===============================================
+
+VOCÊ PRECISA FAZER 2 COISAS:
+
+===============================================
+
+PRIMEIRO - RODAR API (Terminal 1)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Abra PowerShell novo (Windows + R, powershell, ENTER)
+
+2. Cole isto:
+cd c:\Users\lucia\sac-1c
+
+3. Aperte ENTER
+
+4. Cole isto:
+node start.js
+
+5. Aperte ENTER
+
+6. DEIXE RODANDO (não feche!)
+
+Você vai ver:
+✅ API pronta em http://localhost:3000
+
+
+SEGUNDO - RODAR GEMINI (Terminal 2)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Abra OUTRO PowerShell novo (Windows + R, powershell, ENTER)
+
+2. Cole isto:
+cd c:\Users\lucia\sac-1c
+
+3. Aperte ENTER
+
+4. Cole isto:
+node src/integracoes/gemini.js
+
+5. Aperte ENTER
+
+Você vai ver:
+✅ Tarefas criadas!
+
+
+===============================================
+
+PRONTO! Gemini está rodando!
+
+Agora teste no WhatsApp: !hoje
+
+===============================================

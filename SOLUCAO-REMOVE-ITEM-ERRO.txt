@@ -1,0 +1,151 @@
+SOLUCAO - ERRO "Remove-Item NAO RECONHECIDO"
+═════════════════════════════════════════════════════════════════════════════════
+
+Por que aconteceu:
+─────────────────
+❌ PowerShell pode estar corrompido/sem PATH
+❌ Pode estar em CMD (prompt) em vez de PowerShell
+❌ Caminho incorreto
+
+Status do .env:
+───────────────
+✅ ARQUIVO: c:\Users\lucia\sac-1c\.env EXISTE
+✅ CONTEUDO OK:
+   API_TOKEN=sac1c_bot_2025
+   PORT=3000
+   GEMINI_API_KEY=AIzaSyBHmfKBDjWxQriuHgB3g_Y--BNc8z24wqo
+
+═════════════════════════════════════════════════════════════════════════════════
+METODO 1: USAR CMD NATIVO (MAIS RÁPIDO - RECOMENDADO)
+═════════════════════════════════════════════════════════════════════════════════
+
+Abra: Windows + R
+
+Digite: cmd
+
+Aperte: ENTER
+
+Na janela que abrir, cole E APERTE ENTER:
+
+cd c:\Users\lucia\sac-1c & del data\database.sqlite* & echo OK
+
+
+═════════════════════════════════════════════════════════════════════════════════
+METODO 2: POWERSHELL NOVO (LIMPAR CACHE)
+═════════════════════════════════════════════════════════════════════════════════
+
+1. Feche todos os PowerShell abertos
+
+2. Abra: Windows + R
+
+3. Digite: powershell -noprofile
+
+4. Aperte: ENTER
+
+5. Na janela nova que abrir, cole:
+
+cd c:\Users\lucia\sac-1c; Remove-Item data\*.sqlite* -Force -ErrorAction SilentlyContinue; Write-Host "Banco deletado"
+
+
+═════════════════════════════════════════════════════════════════════════════════
+METODO 3: FICHEIRO EXPLORER (SEM TERMINAL)
+═════════════════════════════════════════════════════════════════════════════════
+
+1. Abra: Windows + E (File Explorer)
+
+2. Navegue até: c:\Users\lucia\sac-1c\data\
+
+3. Delete manualmente:
+   - database.sqlite
+   - database.sqlite-wal
+   - database.sqlite-shm
+
+4. Feche Explorer
+
+
+═════════════════════════════════════════════════════════════════════════════════
+METODO 4: POWERSHELL ISE (Interface mais confiável)
+═════════════════════════════════════════════════════════════════════════════════
+
+1. Abra: Windows + R
+
+2. Digite: powershell_ise
+
+3. Aperte: ENTER
+
+4. Na janela que abrir, cole no script editor (painel superior grande):
+
+$path = "c:\Users\lucia\sac-1c\data\database.sqlite*"
+Remove-Item -Path $path -Force -ErrorAction SilentlyContinue
+Write-Host "Banco deletado com sucesso"
+Set-Location c:\Users\lucia\sac-1c
+
+5. Aperte: F5 (ou clique play)
+
+
+═════════════════════════════════════════════════════════════════════════════════
+APOS DELETAR (QUALQUER METODO)
+═════════════════════════════════════════════════════════════════════════════════
+
+NOTA: Se você tinha Terminal 1 aberto (node start.js) - FECHE ELE ANTES
+
+1. Abra novo terminal (CMD ou PowerShell)
+
+2. Cole:
+   cd c:\Users\lucia\sac-1c & node start.js
+
+3. AGUARDE 15 SEGUNDOS (vai criar novo banco)
+
+4. Você vai ver:
+   ✅ API pronta em http://localhost:3000
+   (ou mensagens de migração do banco)
+
+5. Neste mesmo terminal, NÃO FECHE!
+
+6. Abra OUTRO terminal novo
+
+7. Cole:
+   cd c:\Users\lucia\sac-1c & node src\integracoes\gemini.js
+
+8. Se funcionar, você vai ver:
+   ✅ Tarefas criadas com sucesso!
+
+
+═════════════════════════════════════════════════════════════════════════════════
+TESTE FINAL
+═════════════════════════════════════════════════════════════════════════════════
+
+Abra WhatsApp Web:
+1. Clique na pasta 89123456789 (seu número)
+2. Digite no chat: !hoje
+3. Aguarde 5 segundos
+4. Deve aparecer: Tarefas de hoje: [lista sem erro]
+
+Se ainda aparecer "no such column: ativo":
+❌ Significa banco não foi deletado
+
+Solução: Repita METODO 1 ou METODO 3
+
+
+═════════════════════════════════════════════════════════════════════════════════
+DÚVIDA FREQUENTE
+═════════════════════════════════════════════════════════════════════════════════
+
+P: Todos esses métodos fazem a mesma coisa?
+R: SIM. Escolha o que funcionar primeiro.
+
+P: Qual é mais rápido?
+R: METODO 1 (CMD) é o mais rápido e confiável.
+
+P: Deixo terminal rodando enquanto dele o banco?
+R: NÃO! Feche TODOS os terminais antes de deletar.
+
+P: E se não funcionar?
+R: Use METODO 3 (File Explorer) - sempre funciona.
+
+
+═════════════════════════════════════════════════════════════════════════════════
+
+Sucesso! 💪
+
+Arquivo: c:\Users\lucia\sac-1c\SOLUCAO-REMOVE-ITEM-ERRO.txt

@@ -1,0 +1,69 @@
+PARAR A API - INSTRUCOES
+
+===============================================
+
+Quando você aperta Ctrl + C:
+
+Se aparecer só: ^C
+
+NÃO PRECISA DIGITAR NADA!
+
+Simplesmente feche o terminal ou abra um novo.
+
+===============================================
+
+PASSO 1: PARAR TERMINAL 1
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Clique na janela do Terminal 1
+
+2. Aperte: Ctrl + C
+
+3. Você vai ver: ^C
+
+4. PRONTO! Pode fechar ou abrir novo terminal
+
+
+PASSO 2: DELETAR BANCO
+━━━━━━━━━━━━━━━━━━━━
+
+Abra um novo PowerShell (Windows + R, powershell)
+
+Cole isto:
+cd c:\Users\lucia\sac-1c; Remove-Item -Path "data/database.sqlite*" -Force; Write-Host "OK"
+
+Aperte ENTER
+
+
+PASSO 3: RODAR API NOVAMENTE
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+No mesmo PowerShell, cole:
+node start.js
+
+Aperte ENTER
+
+Aguarde 10 segundos.
+
+Você vai ver:
+✅ API pronta em http://localhost:3000
+
+
+PASSO 4: ABRIR NOVO TERMINAL PARA GEMINI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Windows + R
+powershell
+ENTER
+
+Cole:
+cd c:\Users\lucia\sac-1c; node src/integracoes/gemini.js
+
+Aperte ENTER
+
+
+===============================================
+
+Dessa vez FUNCIONA! ✅
+
+===============================================

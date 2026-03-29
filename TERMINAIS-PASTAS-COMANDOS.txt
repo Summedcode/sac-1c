@@ -1,0 +1,66 @@
+TERMINAIS - PASTA E COMANDOS
+
+===============================================
+
+AMBOS OS TERMINAIS DEVEM SER ABERTOS NA PASTA:
+
+c:\Users\lucia\sac-1c
+
+===============================================
+
+COMO FAZER:
+
+1. Pressione: Windows + R
+2. Digite: powershell
+3. Aperte: ENTER
+
+Você vai estar em alguma pasta padrão.
+
+Agora MUDE PARA A PASTA DO PROJETO:
+
+cd c:\Users\lucia\sac-1c
+
+Aperte ENTER
+
+Agora você está na pasta certa!
+
+===============================================
+
+TERMINAL 1 - RODAR API
+━━━━━━━━━━━━━━━━━━━━━
+
+Pasta: c:\Users\lucia\sac-1c
+
+Cole:
+node start.js
+
+Aperte ENTER
+
+DEIXE RODANDO! (não feche)
+
+Você vai ver:
+✅ API pronta em http://localhost:3000
+
+
+TERMINAL 2 - RODAR GEMINI
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pasta: c:\Users\lucia\sac-1c
+
+Cole:
+node src/integracoes/gemini.js
+
+Aperte ENTER
+
+Você vai ver:
+✅ Tarefas criadas!
+
+
+===============================================
+
+IMPORTANTE:
+- Ambos em: c:\Users\lucia\sac-1c
+- Terminal 1: FICA RODANDO
+- Terminal 2: Testa Gemini
+
+===============================================

@@ -1,0 +1,41 @@
+PASSO-A-PASSO: ATUALIZAR SDK GEMINI (Windows travado)
+═══════════════════════════════════════════════════════════════════════════════
+
+1. FECHE TUDO
+────────────────
+- Feche TODOS os terminais, PowerShell, CMD, VS Code, Node.js, etc.
+- Abra o Gerenciador de Tarefas (Ctrl+Shift+Esc)
+- Mate qualquer processo chamado "node.exe" (End Task)
+
+2. APAGUE MANUALMENTE
+──────────────────────
+- Abra o Explorador de Arquivos (Windows + E)
+- Vá para: c:\Users\lucia\sac-1c\
+- Delete a pasta: node_modules
+- Delete o arquivo: package-lock.json
+- Se der erro de permissão, reinicie o computador e tente de novo
+
+3. INSTALE O SDK NOVO
+──────────────────────
+- Abra um novo PowerShell na pasta do projeto:
+  cd c:\Users\lucia\sac-1c
+- Rode:
+  npm install @google/generative-ai@latest
+
+4. CONFIRME A VERSÃO
+─────────────────────
+- Abra o arquivo:
+  c:\Users\lucia\sac-1c\node_modules\@google\generative-ai\package.json
+- Procure por:
+  "version": "1.x.x"  (tem que ser 1.0.0 ou maior)
+
+5. TESTE O SCRIPT
+──────────────────
+- Rode:
+  node src\integracoes\gemini.js
+- Se aparecer lista de modelos ou sumir o erro 404, está OK!
+
+═══════════════════════════════════════════════════════════════════════════════
+Se continuar travado, reinicie o PC e repita o processo.
+
+Arquivo: ATUALIZAR-SDK-GEMINI.txt

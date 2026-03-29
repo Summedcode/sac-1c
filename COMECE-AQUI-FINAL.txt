@@ -1,0 +1,81 @@
+COMECE AQUI - INSTRUCOES FINAIS
+
+===============================================
+
+ESCOLHA: Usar POWERSHELL DO WINDOWS (recomendado)
+
+Não use VS Code, use PowerShell puro do Windows.
+
+===============================================
+
+TERMINAL 1 - RODAR A API
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Pressione: Windows + R
+
+2. Digite: powershell
+
+3. Aperte: ENTER
+
+Uma janela AZUL abre
+
+4. Cole isto:
+cd c:\Users\lucia\sac-1c
+
+5. Aperte: ENTER
+
+6. Cole isto:
+node start.js
+
+7. Aperte: ENTER
+
+Aguarde 5 segundos.
+
+Você vai ver:
+✅ API pronta em http://localhost:3000
+
+IMPORTANTE: NÃO FECHE ESTE TERMINAL!
+
+
+TERMINAL 2 - RODAR GEMINI
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Pressione: Windows + R (novamente)
+
+2. Digite: powershell
+
+3. Aperte: ENTER
+
+Uma NOVA janela AZUL abre
+
+4. Cole isto:
+cd c:\Users\lucia\sac-1c
+
+5. Aperte: ENTER
+
+6. Cole isto:
+node src/integracoes/gemini.js
+
+7. Aperte: ENTER
+
+Você vai ver mensagens como:
+✅ Conectando ao Gemini...
+✅ Tarefas criadas com sucesso!
+
+Depois pode FECHAR este terminal.
+
+
+RESULTADO FINAL
+━━━━━━━━━━━━━━━
+
+Teste no WhatsApp:
+!hoje
+
+Você vai ver tarefas novas criadas por Gemini!
+
+
+===============================================
+
+SÓ ISSO! Terminal 1 rodando API + Terminal 2 rodando Gemini = PRONTO!
+
+===============================================

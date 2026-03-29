@@ -1,0 +1,87 @@
+/**
+ * Servidor Express da API
+ * Endpoints REST para tarefas, lembretes e integração com IA
+ */
+
+const express = require('express')
+const { obterBanco } = require('../database')
+
+const rotasTarefas = require('./routes/tarefas')
+const rotasLembretes = require('./routes/lembretes')
+const rotasIA = require('./routes/ia')
+const rotasGemini = require('./routes/gemini')
+const errorHandler = require('../middleware/errorHandler')
+
+const PORT = process.env.API_PORT || 3000
+
+const app = express()
+
+// ─────────────────────────────────────
+// Middleware
+// ─────────────────────────────────────
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ limit: '10mb', extended: true }))
+
+// Log de requisições
+app.use((req, res, next) => {
+  console.log(`📡 ${req.method} ${req.path}`)
+  next()
+})
+
+// ─────────────────────────────────────
+// Health Check
+// ─────────────────────────────────────
+app.get('/health', (req, res) => {
+  const { statusBanco } = require('../database')
+  const banco = statusBanco()
+
+  res.json({
+    status: 'online',
+    timestamp: new Date().toISOString(),
+    banco: banco.conectado ? 'conectado' : 'erro',
+    versao_banco: banco.versao
+  })
+})
+
+// ─────────────────────────────────────
+// Rotas
+// ─────────────────────────────────────
+app.use('/api/tarefas', rotasTarefas)
+app.use('/api/lembretes', rotasLembretes)
+app.use('/api/ia', rotasIA)
+app.use('/api/gemini', rotasGemini)
+
+// ─────────────────────────────────────
+// 404 Handler
+// ─────────────────────────────────────
+app.use((req, res) => {
+  res.status(404).json({
+    erro: 'Rota não encontrada',
+    caminho: req.path,
+    metodo: req.method
+  })
+})
+
+// ─────────────────────────────────────
+// Error Handler (deve ser último)
+// ─────────────────────────────────────
+app.use(errorHandler)
+
+// ─────────────────────────────────────
+// Iniciar Servidor
+// ─────────────────────────────────────
+function iniciarAPI() {
+  return new Promise((resolve) => {
+    app.listen(PORT, () => {
+      console.log(`\n🌐 API rodando em http://localhost:${PORT}`)
+      console.log(`   📚 Documentação: http://localhost:${PORT}/docs`)
+      console.log(`   💚 Health Check: http://localhost:${PORT}/health\n`)
+      resolve()
+    })
+  })
+}
+
+module.exports = {
+  app,
+  iniciarAPI
+}

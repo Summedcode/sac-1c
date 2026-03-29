@@ -1,0 +1,65 @@
+╔════════════════════════════════════════════════════════════════╗
+║                 ETAPA 5 - RODAR GEMINI                         ║
+╚════════════════════════════════════════════════════════════════╝
+
+PASSO 1: Abra um PowerShell novo
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Pressione: Windows + R
+2. Digite: powershell
+3. Aperte: ENTER
+
+Você vai ver uma janela azul com:
+PS C:\Users\lucia\>
+
+
+PASSO 2: Copie e cole ISTO linha por linha
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LINHA 1 - Cole isto:
+cd c:\Users\lucia\sac-1c
+
+Aperte ENTER
+
+
+LINHA 2 - Cole isto:
+node src/integracoes/gemini.js
+
+Aperte ENTER
+
+
+PASSO 3: Aguarde
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Você vai ver mensagens como:
+
+✅ Conectando ao Gemini...
+✅ Tarefas criadas com sucesso!
+
+Pode fechar o terminal quando terminar.
+
+
+╔════════════════════════════════════════════════════════════════╗
+║                     RESUMO - ISTO FUNCIONA:                   ║
+╚════════════════════════════════════════════════════════════════╝
+
+LINHA 1:
+cd c:\Users\lucia\sac-1c
+
+LINHA 2:
+node src/integracoes/gemini.js
+
+
+╔════════════════════════════════════════════════════════════════╗
+║                         SE DER ERRO:                          ║
+╚════════════════════════════════════════════════════════════════╝
+
+Erro: "Cannot find module"
+→ Rode em Terminal 1 primeiro: node start.js
+
+
+Erro: "GEMINI_API_KEY not found"
+→ Adicione ao .env a chave do Google
+
+
+FIM - SAC-1C 2025

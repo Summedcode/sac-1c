@@ -1,0 +1,101 @@
+{
+  "exemploIntegracao": {
+    "titulo": "Exemplos de Integração com IA/LLM",
+    "descricao": "Como conectar sua API a modelos de IA",
+    
+    "exemplo1": {
+      "titulo": "Claude (Anthropic) - Node.js",
+      "codigo": "// npm install @anthropic-ai/sdk\n\nconst Anthropic = require('@anthropic-ai/sdk')\nconst fetch = require('node-fetch')\n\nconst client = new Anthropic({\n  apiKey: process.env.ANTHROPIC_API_KEY\n})\n\nasync function gerarTarefasComClaude() {\n  // 1. Busca tarefas do seu banco\n  const response = await fetch('http://localhost:3000/api/ia/analisar-progresso', {\n    method: 'POST'\n  })\n  const dados = await response.json()\n  \n  // 2. Formata para Claude\n  const prompt = `\nVocê é um assistente educacional. Baseado nesse progresso de estudos:\n\nTotal de tarefas: ${dados.dados.total}\nConcluídas: ${dados.dados.concluidas}\nProgresso: ${dados.dados.percentual}%\n\nPor matéria:\n${dados.dados.por_materia.map(m => `- ${m.materia}: ${m.feitas}/${m.total}`).join('\\\\n')}\n\nGere 3-5 novas tarefas de estudo prioritárias em JSON:\n[\n  {\n    \"descricao\": \"...\",\n    \"materia\": \"...\",\n    \"tipo\": \"tarefa|prova|estudo\",\n    \"prioridade\": \"alta|normal|baixa\",\n    \"data_vencimento\": \"YYYY-MM-DD\"\n  }\n]\n  `\n\n  // 3. Chama Claude\n  const message = await client.messages.create({\n    model: 'claude-3-opus-20250204',\n    max_tokens: 1024,\n    messages: [\n      {\n        role: 'user',\n        content: prompt\n      }\n    ]\n  })\n\n  // 4. Extrai JSON da resposta\n  const textoResposta = message.content[0].text\n  const match = textoResposta.match(/\\[\\s*{[\\s\\S]*}\\s*\\]/)\n  \n  if (!match) {\n    console.error('Claude não retornou JSON válido')\n    return\n  }\n\n  const tarefasGeradas = JSON.parse(match[0])\n\n  // 5. Envia para sua API\n  const respostaAPI = await fetch('http://localhost:3000/api/ia/gerar-tarefas', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({\n      modelo: 'claude-3-opus',\n      origem: 'geracao_automatica',\n      tarefas: tarefasGeradas\n    })\n  })\n\n  const resultado = await respostaAPI.json()\n  console.log(`✅ ${resultado.criadas} tarefas criadas via Claude!`)\n}\n\ngerarTarefasComClaude()"
+    },
+
+    "exemplo2": {
+      "titulo": "OpenAI (ChatGPT) - Python",
+      "codigo": "# pip install openai requests\n\nfrom openai import OpenAI\nimport requests\nimport json\nfrom datetime import datetime, timedelta\n\nclient = OpenAI(api_key='seu-api-key-aqui')\n\ndef gerar_tarefas_com_gpt():\n    # 1. Busca progresso\n    response = requests.post('http://localhost:3000/api/ia/analisar-progresso')\n    dados = response.json()['dados']\n    \n    # 2. Formata para ChatGPT\n    prompt = f\"\"\"\nVocê é um assistente educacional. Analisando esse progresso:\n\nTotal: {dados['total']} tarefas\nConcluídas: {dados['concluidas']} ({dados['percentual']}%)\nPendentes: {dados['pendentes']}\n\nPor matéria:\n{\"\".join([f\"- {m['materia']}: {m['feitas']}/{m['total']}\\n\" for m in dados['por_materia']])}\n\nGere 3 novas tarefas prioritárias em JSON:\n[\n  {{\n    \"descricao\": \"...\",\n    \"materia\": \"...\",\n    \"tipo\": \"tarefa\",\n    \"prioridade\": \"alta\",\n    \"data_vencimento\": \"2025-04-15\"\n  }}\n]\n    \"\"\"\n    \n    # 3. Chama ChatGPT\n    response = client.chat.completions.create(\n        model='gpt-4',\n        messages=[\n            {'role': 'system', 'content': 'Você é um assistente que retorna JSON válido'},\n            {'role': 'user', 'content': prompt}\n        ],\n        temperature=0.7\n    )\n    \n    # 4. Extrai JSON\n    texto_resposta = response.choices[0].message.content\n    json_start = texto_resposta.find('[')\n    json_end = texto_resposta.rfind(']') + 1\n    tarefas_json = json.loads(texto_resposta[json_start:json_end])\n    \n    # 5. Envia para API\n    resultado = requests.post(\n        'http://localhost:3000/api/ia/gerar-tarefas',\n        json={\n            'modelo': 'gpt-4',\n            'origem': 'analise_gpt',\n            'tarefas': tarefas_json\n        }\n    )\n    \n    print(f\"✅ {resultado.json()['criadas']} tarefas criadas via GPT!\")\n\nif __name__ == '__main__':\n    gerar_tarefas_com_gpt()"
+    },
+
+    "exemplo3": {
+      "titulo": "Bot Discord com IA",
+      "codigo": "# pip install discord.py anthropic requests\n\nimport discord\nfrom discord.ext import commands\nfrom anthropic import Anthropic\nimport requests\nimport json\n\nbot = commands.Bot(command_prefix='!', intents=discord.Intents.default())\nclient_anthropic = Anthropic()\n\n@bot.command(name='ia')\nasync class ComandoIA(commands.Cog):\n    @commands.command(name='sugerir')\n    async def sugerir_tarefas(self, ctx):\n        \"\"\"Pede ao Claude sugestões de novas tarefas\"\"\"\n        \n        async with ctx.typing():\n            try:\n                # 1. Busca dados do servidor Node.js\n                response = requests.get(\n                    'http://seu-servidor:3000/api/ia/gerar-resumo',\n                    json={'tipo': 'semana'}\n                )\n                resumo = response.json()\n                \n                # 2. Envia para Claude\n                message = await client_anthropic.messages.create(\n                    model='claude-3-opus-20250204',\n                    max_tokens=1024,\n                    messages=[\n                        {\n                            'role': 'user',\n                            'content': f\"\"\"\nBaseado nesse resumo de tarefas:\n{resumo['prompt']}\n\nGere sugestões de 3 coisas importantes que estão faltando.\nRetorne como JSON:\n[\n  {{\n    \"descricao\": \"...\",\n    \"materia\": \"...\",\n    \"tipo\": \"tarefa\",\n    \"prioridade\": \"alta\",\n    \"data_vencimento\": \"2025-04-15\"\n  }}\n]\n                            \"\"\"\n                        }\n                    ]\n                )\n                \n                # 3. Extrai JSON\n                texto = message.content[0].text\n                json_text = texto[texto.find('['):texto.rfind(']')+1]\n                tarefas = json.loads(json_text)\n                \n                # 4. Envia para API\n                resultado = requests.post(\n                    'http://seu-servidor:3000/api/ia/gerar-tarefas',\n                    json={\n                        'modelo': 'claude-3-opus',\n                        'origem': 'discord_bot',\n                        'tarefas': tarefas\n                    }\n                )\n                \n                # 5. Retorna para Discord\n                embed = discord.Embed(\n                    title='✅ Tarefas Sugeridas',\n                    description=f'Criei {resultado.json()[\"criadas\"]} novas tarefas!',\n                    color=discord.Color.green()\n                )\n                for t in tarefas:\n                    embed.add_field(\n                        name=f\"{t['materia']} - {t['prioridade']}\",\n                        value=t['descricao'],\n                        inline=False\n                    )\n                \n                await ctx.send(embed=embed)\n                \n            except Exception as e:\n                await ctx.send(f'❌ Erro: {str(e)}')\n\nbot.run('seu-token-discord')"
+    },
+
+    "exemplo4": {
+      "titulo": "Bot Telegram com IA",
+      "codigo": "# pip install python-telegram-bot anthropic requests\n\nfrom telegram import Update\nfrom telegram.ext import Application, CommandHandler, ContextTypes\nfrom anthropic import Anthropic\nimport requests\nimport json\n\nbot_telegram = Application.builder().token('SEU_TOKEN_TELEGRAM').build()\nclient_claude = Anthropic()\n\nasync def comando_ia(update: Update, context: ContextTypes.DEFAULT_TYPE):\n    \"\"\"Comando /ia no Telegram\"\"\"\n    \n    await update.message.reply_text('🤖 Analisando suas tarefas...', reply_to_message_id=update.message.message_id)\n    \n    try:\n        # 1. Busca progresso\n        response = requests.post('http://seu-servidor:3000/api/ia/analisar-progresso')\n        progresso = response.json()['dados']\n        \n        # 2. Envia para Claude\n        prompt = f\"\"\"\nProgresso de estudos:\n- Total: {progresso['total']} tarefas\n- Concluídas: {progresso['concluidas']} ({progresso['percentual']}%)\n- Pendentes: {progresso['pendentes']}\n\nGere 2 tarefas urgentes:\n[{{\"descricao\": \"...\", \"materia\": \"...\", \"tipo\": \"tarefa\", \"prioridade\": \"alta\", \"data_vencimento\": \"2025-04-15\"}}]\n        \"\"\"\n        \n        message = await client_claude.messages.create(\n            model='claude-3-opus-20250204',\n            max_tokens=500,\n            messages=[{'role': 'user', 'content': prompt}]\n        )\n        \n        # 3. Extrai JSON\n        texto = message.content[0].text\n        tarefas = json.loads(texto[texto.find('['):texto.rfind(']')+1])\n        \n        # 4. Envia para API\n        resultado = requests.post(\n            'http://seu-servidor:3000/api/ia/gerar-tarefas',\n            json={'modelo': 'claude', 'origem': 'telegram_bot', 'tarefas': tarefas}\n        )\n        \n        # 5. Retorna para usuário\n        resposta = f\"\"\"✅ Criei {resultado.json()['criadas']} novas tarefas!\n\n{chr(10).join([f\"📝 {t['descricao'][:50]}...\" for t in tarefas])}\n        \"\"\"\n        \n        await update.message.reply_text(resposta)\n        \n    except Exception as e:\n        await update.message.reply_text(f'❌ Erro: {str(e)}')\n\nbot_telegram.add_handler(CommandHandler('ia', comando_ia))\nbot_telegram.run_polling()"
+    },
+
+    "exemplo5": {
+      "titulo": "Cron Job Diário (Automático)",
+      "codigo": "#!/bin/bash\n# Salve como: /usr/local/bin/gerar-tarefas-ia.sh\n# Execute com: crontab -e\n# Adicione: 0 7 * * * /usr/local/bin/gerar-tarefas-ia.sh\n\n#!/bin/bash\ncd /seu/projeto/sac-1c\n\n# 1. Busca progresso\nPROGRESSO=$(curl -s -X POST http://localhost:3000/api/ia/analisar-progresso | jq .dados)\n\n# 2. Cria prompt para Claude\nPROMPT=\"Baseado nesse progresso de estudos:\\n$PROGRESSO\\n\\nGere 2 tarefas urgentes em JSON.\"\n\n# 3. Envia para Claude (via script Python)\nTARIFAS=$(python3 - <<EOF\nimport os\nimport json\nfrom anthropic import Anthropic\n\nclient = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))\nresponse = client.messages.create(\n    model='claude-3-opus-20250204',\n    max_tokens=500,\n    messages=[{'role': 'user', 'content': \"\"\"$PROMPT\n    Retorne APENAS o JSON:\n    [{\"descricao\": \"...\", \"materia\": \"...\", \"tipo\": \"tarefa\", \"prioridade\": \"alta\", \"data_vencimento\": \"2025-04-20\"}]\n    \"\"\"}]\n)\nprint(response.content[0].text)\nEOF\n)\n\n# 4. Envia para sua API\ncurl -X POST http://localhost:3000/api/ia/gerar-tarefas \\\n  -H \"Content-Type: application/json\" \\\n  -d \"{\n    \\\"modelo\\\": \\\"claude-cron\\\",\n    \\\"origem\\\": \\\"cron_job_diario\\\",\n    \\\"tarefas\\\": $TAREFAS\n  }\"\n\n# 5. Log da execução\necho \"[$(date)] Cron job executado com sucesso\" >> /var/log/sac-1c-cron.log"
+    },
+
+    "configuracaoEnviroment": {
+      "titulo": ".env - Variáveis Necessárias",
+      "conteudo": "# WhatsApp\nWHATSAPP_GROUP_ID=123456789-1234567890@g.us\n\n# API\nAPI_PORT=3000\nNODE_ENV=development\n\n# Banco de Dados\nDATABASE_PATH=./data/database.sqlite\n\n# OpenAI / ChatGPT\nOPENAI_API_KEY=sk-1234567890...\n\n# Anthropic / Claude\nANTHROPIC_API_KEY=sk-ant-1234567890...\n\n# Logging\nLOG_LEVEL=info\nLOG_FILE=./logs/acoes.log"
+    },
+
+    "documentacaoAPI": {
+      "gerar-tarefas": {
+        "url": "POST /api/ia/gerar-tarefas",
+        "descricao": "Recebe tarefas geradas por IA e salva no banco",
+        "body": {
+          "modelo": "string (nome do modelo: claude-3, gpt-4, etc)",
+          "origem": "string (de onde veio: discord_bot, telegram, cron_job)",
+          "tarefas": [
+            {
+              "descricao": "string (obrigatória, max 500 chars)",
+              "materia": "string (opcional, padrão: 'geral')",
+              "tipo": "string (tarefa|prova|estudo, padrão: tarefa)",
+              "prioridade": "string (alta|normal|baixa, padrão: normal)",
+              "data_vencimento": "string (YYYY-MM-DD, opcional)"
+            }
+          ]
+        },
+        "resposta": {
+          "sucesso": true,
+          "modelo": "string",
+          "origem": "string",
+          "total_requisitado": 3,
+          "criadas": 3,
+          "erros": 0,
+          "dados": {
+            "criadas": [
+              {"indice": 0, "id": 42, "descricao": "Ler capítulos..."}
+            ]
+          }
+        }
+      },
+
+      "analisar-progresso": {
+        "url": "POST /api/ia/analisar-progresso",
+        "descricao": "Retorna métricas do banco para IA processar",
+        "resposta": {
+          "sucesso": true,
+          "dados": {
+            "total": 50,
+            "concluidas": 15,
+            "pendentes": 35,
+            "percentual": "30.0",
+            "por_materia": [
+              {"materia": "Matemática", "total": 20, "feitas": 8}
+            ]
+          }
+        }
+      },
+
+      "gerar-resumo": {
+        "url": "POST /api/ia/gerar-resumo",
+        "descricao": "Formata tarefas em texto para copiar/colar em ChatGPT",
+        "body": {
+          "tipo": "string (hoje|semana, padrão: semana)"
+        },
+        "resposta": {
+          "sucesso": true,
+          "tipo": "semana",
+          "total_tarefas": 8,
+          "prompt": "# Tarefas de Estudo\\n\\n1. **FÍSICA** - estudo\\n   - Descrição: Ler capítulos 3-5\\n...",
+          "dados_brutos": []
+        }
+      }
+    }
+  }
+}

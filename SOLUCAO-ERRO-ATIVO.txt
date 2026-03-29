@@ -1,0 +1,57 @@
+SOLUCAO - ERRO "no such column: ativo"
+
+===============================================
+
+O PROBLEMA:
+A API ainda está rodando com código antigo que procura 
+por uma coluna "ativo" que não existe.
+
+SOLUCAO:
+
+===============================================
+
+PASSO 1: PARAR A API
+━━━━━━━━━━━━━━━━━━━━━
+
+1. Clique no TERMINAL 1 (onde rodou node start.js)
+
+2. Aperte: Ctrl + C
+
+3. Aguarde aparecer: PS C:\Users\lucia\sac-1c>
+
+4. Escreva: y
+
+5. Aperte: ENTER
+
+
+PASSO 2: RODAR API NOVAMENTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+No mesmo TERMINAL 1, cole:
+
+node start.js
+
+Aperte ENTER
+
+Aguarde ver:
+✅ API pronta em http://localhost:3000
+
+
+PASSO 3: RODAR GEMINI
+━━━━━━━━━━━━━━━━━━━━
+
+No TERMINAL 2, cole:
+
+cd c:\Users\lucia\sac-1c
+node src/integracoes/gemini.js
+
+Aperte ENTER
+
+Agora DEVE FUNCIONAR! ✅
+
+
+===============================================
+
+Se der erro novamente, me avise!
+
+===============================================

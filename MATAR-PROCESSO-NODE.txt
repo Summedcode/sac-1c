@@ -1,0 +1,123 @@
+PROBLEMA: "O ARQUIVO JÁ ESTÁ SENDO USADO POR OUTRO PROCESSO"
+═════════════════════════════════════════════════════════════════════════════════
+
+O QUE SIGNIFICA:
+────────────────
+Um programa Node.js está rodando em BACKGROUND e usando o arquivo do banco.
+Você precisa PARAR esse processo ANTES de deletar o banco.
+
+═════════════════════════════════════════════════════════════════════════════════
+METODO 1: TASK MANAGER (MAIS FACIL - VISUAL)
+═════════════════════════════════════════════════════════════════════════════════
+
+1. Aperte: Ctrl + Shift + Esc (abre Task Manager)
+
+2. Procure por: "node" ou "node.exe"
+
+3. Se encontrou:
+   - Clique em "node"
+   - Clique em "End Task" (botão embaixo)
+
+4. Confirme: "End this task?"
+
+5. Aguarde 3 segundos
+
+6. Feche Task Manager
+
+7. Agora tente deletar:
+   Windows + R → cmd
+   cd c:\Users\lucia\sac-1c & del data\database.sqlite* & echo OK
+
+
+═════════════════════════════════════════════════════════════════════════════════
+METODO 2: POWERSHELL (LINEA DE COMANDO)
+═════════════════════════════════════════════════════════════════════════════════
+
+1. Abra PowerShell NOVO (não use o que teve erro)
+
+2. Cole:
+   Stop-Process -Name node -Force
+
+3. Aperte ENTER
+
+4. Aguarde 2 segundos
+
+5. Cole:
+   cd c:\Users\lucia\sac-1c; Remove-Item data\*.sqlite* -Force -ErrorAction SilentlyContinue; Write-Host "Banco deletado"
+
+6. Aperte ENTER
+
+7. Se aparecer "Banco deletado" = SUCESSO ✅
+
+
+═════════════════════════════════════════════════════════════════════════════════
+METODO 3: CMD (MAIS TRADICIONAL)
+═════════════════════════════════════════════════════════════════════════════════
+
+1. Abra CMD novo (Windows + R → cmd)
+
+2. Cole:
+   taskkill /IM node.exe /F
+
+3. Aperte ENTER
+
+4. Você vai ver:
+   SUCESSO: O processo "node.exe" com PID foi encerrado.
+
+5. Cole:
+   cd c:\Users\lucia\sac-1c & del data\database.sqlite* & echo OK
+
+6. Aperte ENTER
+
+7. Se aparecer "OK" = SUCESSO ✅
+
+
+═════════════════════════════════════════════════════════════════════════════════
+APOS DELETAR COM SUCESSO
+═════════════════════════════════════════════════════════════════════════════════
+
+Quando aparecer "OK" ou "Banco deletado":
+
+TERMINAL 1 (para API):
+─────────────────────
+1. Abra novo PowerShell
+2. Cole: cd c:\Users\lucia\sac-1c
+3. Cole: node start.js
+4. AGUARDE 15 segundos
+5. Procure por: ✅ API pronta em http://localhost:3000
+
+MANTENHA ESTE TERMINAL 1 ABERTO!
+
+
+TERMINAL 2 (para GEMINI):
+────────────────────────
+1. Abra outro PowerShell NOVO (janela separada)
+2. Cole: cd c:\Users\lucia\sac-1c
+3. Cole: node src\integracoes\gemini.js
+4. Você deve ver:
+   ✅ Tarefas criadas com sucesso!
+
+MANTENHA ESTE TERMINAL 2 ABERTO!
+
+
+Se ambos tiverem ✅ = GEMINI FUNCIONANDO! 🎉
+
+
+═════════════════════════════════════════════════════════════════════════════════
+VERIFICACAO FINAL
+═════════════════════════════════════════════════════════════════════════════════
+
+1. WhatsApp Web aberto
+2. Vá à pasta do bot (89123456789 ou seu número)
+3. Digite: !hoje
+4. Resposta esperada (SEM ERRO):
+   Tarefas de hoje: [lista de tarefas]
+
+➜ Se funcionar = CONCLUSÃO! ✅
+➜ Se erro "no such column: ativo" = Banco não foi deletado corretamente
+
+
+═════════════════════════════════════════════════════════════════════════════════
+
+Arquivo: c:\Users\lucia\sac-1c\MATAR-PROCESSO-NODE.txt
+Data: 29/03/2026
