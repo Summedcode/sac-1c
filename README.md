@@ -1,6 +1,8 @@
 # 🚀 SAC-1C — Bot de Tarefas WhatsApp
 
-Bot inteligente para gerenciar atividades, tarefas e lembretes via WhatsApp com arquitetura profissional.
+log note V.1:
+
+IA inteligente integradas ao WhatsApp para gerenciar atividades, tarefas e lembretes via WhatsApp com arquitetura profissional.
 
 ## ✨ Melhorias Implementadas
 
