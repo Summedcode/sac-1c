@@ -99,7 +99,7 @@ Garanta que o JSON é válido e parseável. Tarefas devem ser específicas e aci
     `
 
     // 3. LISTAR MODELOS DISPONÍVEIS
-    const modelId = 'gemini-2.0-flash';
+    const modelId = 'gemini-2.5-flash';
 
     // 4. CHAMAR GEMINI
     console.log(`🧠 2️⃣ Enviando para Gemini (modelo: ${modelId})...`)
@@ -132,7 +132,13 @@ Garanta que o JSON é válido e parseável. Tarefas devem ser específicas e aci
 
     // 4. EXTRAIR JSON DA RESPOSTA
     console.log('📝 3️⃣ Parseando resposta...')
-    const jsonMatch = textoResposta.match(/\{[\s\S]*\}/)
+    // Limpa markdown antes de parsear
+    const textoLimpo = textoResposta
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim()
+
+    const jsonMatch = textoLimpo.match(/\{[\s\S]*\}/)
 
     if (!jsonMatch) {
       console.error('❌ Resposta da IA não contém um bloco JSON válido')
