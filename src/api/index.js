@@ -12,6 +12,7 @@
 
 const path = require('path')
 const express = require('express')
+const fs = require('fs')
 const { obterBanco } = require('../database')
 
 const rotasTarefas = require('./routes/tarefas')
@@ -61,7 +62,12 @@ app.use('/api/gemini', rotasGemini)
 
 // Rota para visualizar o QR Code gerado pelo bot (Útil para logs no Railway)
 app.get('/qr', (req, res) => {
-  res.sendFile(path.join(process.cwd(), 'data', 'qr.png'))
+  const qrPath = path.join(process.cwd(), 'data', 'qr.png')
+  if (fs.existsSync(qrPath)) {
+    res.sendFile(qrPath)
+  } else {
+    res.status(404).send('QR Code ainda não gerado. Aguarde a inicialização do bot.')
+  }
 })
 
 // ─────────────────────────────────────

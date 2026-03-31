@@ -347,12 +347,14 @@ async function executarChamadaIA(msg, isMention, remetente) {
     // 5.2 Registro de Memória (SALVAR_BANCO)
     const regexBanco = /\[SALVAR_BANCO:\s*(.*?)\]/gi;
     const matchBanco = textoFinal.match(regexBanco);
-    if (matchBanco) {
+    if (matchBanco && matchBanco.length > 0) {
       try {
         const db = obterBanco();
-        const infoParaSalvar = matchBanco[0].replace(/\[SALVAR_BANCO:\s*|\]/gi, '').trim();
-        db.prepare("INSERT INTO memoria_contextual (informacao) VALUES (?)").run(infoParaSalvar);
-        console.log(`📝 SAC memorizou: ${infoParaSalvar}`);
+        matchBanco.forEach(tag => {
+          const infoParaSalvar = tag.replace(/\[SALVAR_BANCO:\s*|\]/gi, '').trim();
+          db.prepare("INSERT INTO memoria_contextual (informacao) VALUES (?)").run(infoParaSalvar);
+          console.log(`📝 SAC memorizou: ${infoParaSalvar}`);
+        });
         textoFinal = textoFinal.replace(regexBanco, '').trim();
       } catch (e) { console.error('Erro no registro automático:', e.message); }
     }
