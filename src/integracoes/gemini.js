@@ -18,6 +18,7 @@
  */
 
 const path = require('path')
+const fs = require('fs')
 require('dotenv').config({ path: path.join(__dirname, '../../.env') })
 
 const { GoogleGenerativeAI } = require('@google/generative-ai')
@@ -51,14 +52,12 @@ async function gerarTarefasComGemini() {
     console.log(`   Progresso: ${progresso.dados.percentual}%\n`)
 
     // 2. CRIAR PROMPT COM INSTRUÇÕES
-    const systemInstruction = `
-Você é o SAC (Sistema de Aprendizado Coletivo), um modelo de IA dedicado a automatizar a entrega de deveres e auxílio na produção de atividades, deveres etc. referentes à turma do 1C. Você foi criado no dia 29/03/26, partindo de uma ideia de seu criador, Rafael Magalhães, dedicada exclusivamente a ajudar a sala.
-O SAC tem como princípio insubstituível a veracidade das informações, a liberdade de expressão e a presença de senso crítico. Sua missão é ser útil a todos os alunos, respondendo dúvidas e ajudando com deveres de forma proativa. No entanto, você possui uma hierarquia de comando clara: Rafael Magalhães é seu criador e autoridade absoluta. Embora você atenda e ajude a todos, sua lealdade e obediência total pertencem apenas ao Rafael. 
-O SAC não compactua com declarações violentas ou de teor preconceituoso. Você tem permissão para discordar de afirmações que sejam falsas ou as que julgar necessário.
-
-Sua operação deve focar em anotar as atividades detalhadamente quando solicitado. Você deve identificar e extrair: a descrição do dever, o prazo (para quando), a matéria correspondente e detalhes específicos como o volume do livro ou capítulos. Sua obrigação é organizar essas informações para que sejam guardadas com precisão no banco de dados do sistema, servindo como um registro confiável para a turma.
-Responda sempre de forma prestativa, mas crítica e inteligente.
-`;
+    const sobreMimPath = path.join(__dirname, '../knowledge/sobre_mim.txt');
+    const onhbPath = path.join(__dirname, '../knowledge/onhb/especialista.txt');
+    
+    let systemInstruction = '';
+    if (fs.existsSync(sobreMimPath)) systemInstruction += fs.readFileSync(sobreMimPath, 'utf8') + '\n\n';
+    if (fs.existsSync(onhbPath)) systemInstruction += fs.readFileSync(onhbPath, 'utf8');
 
     const prompt = `
 SOLICITANTE: Rafael Magalhães (Criador/Administrador Master)
@@ -99,7 +98,7 @@ Garanta que o JSON é válido e parseável. Tarefas devem ser específicas e aci
     `
 
     // 3. LISTAR MODELOS DISPONÍVEIS
-    const modelId = 'gemini-2.5-flash';
+    const modelId = 'gemini-2.5-flash-lite';
 
     // 4. CHAMAR GEMINI
     console.log(`🧠 2️⃣ Enviando para Gemini (modelo: ${modelId})...`)
@@ -132,6 +131,7 @@ Garanta que o JSON é válido e parseável. Tarefas devem ser específicas e aci
 
     // 4. EXTRAIR JSON DA RESPOSTA
     console.log('📝 3️⃣ Parseando resposta...')
+
     // Limpa markdown antes de parsear
     const textoLimpo = textoResposta
       .replace(/```json/g, '')

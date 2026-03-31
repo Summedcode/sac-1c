@@ -5,6 +5,7 @@
  * 🛠️ DESCRIÇÃO: Core do Bot de WhatsApp - Handlers e Eventos
  */
 
+const path = require('path')
 const { Client, LocalAuth } = require('whatsapp-web.js')
 const qrcode = require('qrcode-terminal')
 
@@ -33,7 +34,9 @@ const { handleSAC } = require('./handlers/sac')
 const { inicializarScheduler } = require('./scheduler')
 
 const client = new Client({
-  authStrategy: new LocalAuth(),
+  authStrategy: new LocalAuth({
+    dataPath: path.join(process.cwd(), 'data')
+  }),
   puppeteer: {
     args: [
       '--no-sandbox',
@@ -42,6 +45,7 @@ const client = new Client({
       '--disable-accelerated-2d-canvas',
       '--no-first-run',
       '--no-zygote',
+      '--single-process',
       '--disable-gpu'
     ]
   },
@@ -66,9 +70,14 @@ client.on('ready', () => {
 // Handler de Mensagens
 // ─────────────────────────────────────
 
+const botStartTime = Math.floor(Date.now() / 1000);
+
 client.on('message', async (msg) => {
-  console.log('📨 Mensagem recebida:', msg.body, '| De:', msg.from)
   try {
+    // ⏳ Filtro de Tempo: Ignora mensagens enviadas antes do processo iniciar
+    if (msg.timestamp < botStartTime) return;
+
+    console.log('📨 Mensagem recebida:', msg.body, '| De:', msg.from)
     const texto = msg.body.toLowerCase().trim()
 
     // Ignora mensagens vazias
@@ -99,8 +108,9 @@ client.on('message', async (msg) => {
     if (texto === '!sim') return await handleSim(msg)
     if (texto === '!não') return await handleNao(msg)
 
-    // 🤖 Ativação por menção (SAC)
-    if (texto.includes('sac')) return await handleSAC(msg)
+    // 🤖 Ativação por menção ou proatividade (SAC)
+    const isMention = texto.includes('sac')
+    return await handleSAC(msg, isMention)
 
   } catch (erro) {
     console.error('❌ Erro ao processar mensagem:', erro)

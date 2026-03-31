@@ -19,7 +19,7 @@ const rotasIA = require('./routes/ia')
 const { router: rotasGemini } = require('./routes/gemini')
 const errorHandler = require('../middleware/errorHandler')
 
-const PORT = process.env.API_PORT || 3000
+const PORT = process.env.PORT || process.env.API_PORT || 3000
 
 const app = express()
 

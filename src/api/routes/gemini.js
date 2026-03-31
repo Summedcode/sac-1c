@@ -119,7 +119,7 @@ router.post('/gerar-tarefas', verificarToken, (req, res, next) => {
     // Resposta
     res.status(201).json({
       sucesso: true,
-      modelo: 'gemini-2.0-flash',
+      modelo: 'gemini-2.5-flash-lite',
       origem: 'gemini_api',
       total_requisitado: tarefas.length,
       criadas: resultados.length,

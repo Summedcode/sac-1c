@@ -70,6 +70,36 @@ const MIGRATIONS = {
     }
   },
 
+  3: {
+    id: 3,
+    descricao: 'Criação da tabela de memória contextual para o SAC',
+    up: (db) => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS memoria_contextual (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          informacao TEXT NOT NULL,
+          data_criacao TEXT DEFAULT (datetime('now', 'localtime'))
+        );
+      `)
+    }
+  },
+
+  4: {
+    id: 4,
+    descricao: 'Criação da tabela de perfis de usuários para Consciência Social',
+    up: (db) => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS perfil_usuarios (
+          id_whatsapp TEXT PRIMARY KEY,
+          nome TEXT,
+          nivel_confianca INTEGER DEFAULT 50,
+          notas_do_mentor TEXT,
+          ultima_interacao TEXT DEFAULT (datetime('now', 'localtime'))
+        );
+      `)
+    }
+  }
+
   // Exemplo de uma futura migration:
   // 2: {
   //   id: 2,
