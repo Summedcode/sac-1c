@@ -35,7 +35,7 @@ const { registrarAcao } = require('../../utils/logger')
  *   ]
  * }
  */
-router.post('/gerar-tarefas', (req, res) => {
+router.post('/gerar-tarefas', (req, res, next) => {
   try {
     const { modelo, origem, tarefas } = req.body
 
