@@ -62,11 +62,14 @@ app.use('/api/gemini', rotasGemini)
 
 // Rota para visualizar o QR Code gerado pelo bot (Útil para logs no Railway)
 app.get('/qr', (req, res) => {
-  const qrPath = path.join(process.cwd(), 'data', 'qr.png')
-  if (fs.existsSync(qrPath)) {
-    res.sendFile(qrPath)
-  } else {
-    res.status(404).send('QR Code ainda não gerado. Aguarde a inicialização do bot.')
+  const qrPath = path.join(process.cwd(), 'data', 'qr.png');
+  try {
+    if (fs.existsSync(qrPath)) {
+      return res.sendFile(qrPath);
+    }
+    res.status(404).send('QR Code ainda não gerado. Aguarde a inicialização do motor do WhatsApp.');
+  } catch (err) {
+    res.status(500).send('Erro ao carregar QR Code.');
   }
 })
 

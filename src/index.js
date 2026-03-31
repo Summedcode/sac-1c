@@ -47,9 +47,11 @@ const client = new Client({
       '--disable-accelerated-2d-canvas',
       '--no-first-run',
       '--no-zygote',
-      '--single-process',
-      '--disable-gpu'
-    ]
+      '--disable-gpu',
+      '--hide-scrollbars',
+      '--disable-notifications'
+    ],
+    userDataDir: path.join(process.cwd(), 'data', 'session')
   },
   qrMaxRetries: 5
 })
