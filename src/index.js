@@ -36,9 +36,10 @@ const { inicializarScheduler } = require('./scheduler')
 
 const client = new Client({
   authStrategy: new LocalAuth({
-    dataPath: path.join(process.cwd(), 'data')
+    dataPath: path.join(process.cwd(), 'data', 'session')
   }),
   puppeteer: {
+    executablePath: '/usr/bin/google-chrome-stable',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
