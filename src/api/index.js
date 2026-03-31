@@ -10,6 +10,7 @@
  * Endpoints REST para tarefas, lembretes e integração com IA
  */
 
+const path = require('path')
 const express = require('express')
 const { obterBanco } = require('../database')
 
@@ -58,6 +59,11 @@ app.use('/api/lembretes', rotasLembretes)
 app.use('/api/ia', rotasIA)
 app.use('/api/gemini', rotasGemini)
 
+// Rota para visualizar o QR Code gerado pelo bot (Útil para logs no Railway)
+app.get('/qr', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'data', 'qr.png'))
+})
+
 // ─────────────────────────────────────
 // 404 Handler
 // ─────────────────────────────────────
@@ -83,6 +89,7 @@ function iniciarAPI() {
       console.log(`\n🌐 API rodando em http://localhost:${PORT}`)
       console.log(`   📚 Documentação: http://localhost:${PORT}/docs`)
       console.log(`   💚 Health Check: http://localhost:${PORT}/health\n`)
+      console.log(`   📸 QR Code: Acesse https://SUA-URL-DO-RAILWAY/qr para ver o QR Code.\n`)
       resolve()
     })
   })

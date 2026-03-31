@@ -7,7 +7,8 @@
 
 const path = require('path')
 const { Client, LocalAuth } = require('whatsapp-web.js')
-const qrcode = require('qrcode-terminal')
+const qrcodeTerminal = require('qrcode-terminal')
+const qrcode = require('qrcode')
 
 // 📦 Inicializa o banco de dados
 const { statusBanco } = require('./database')
@@ -57,8 +58,12 @@ const client = new Client({
 // ─────────────────────────────────────
 
 client.on('qr', (qr) => {
-  console.log('Escaneie o QR code:')
-  qrcode.generate(qr, { small: true })
+  console.log('Escaneie o QR code no terminal ou via link:')
+  qrcodeTerminal.generate(qr, { small: true })
+
+  // Salva o QR Code como imagem para visualização via Web (Railway)
+  const qrPath = path.join(process.cwd(), 'data', 'qr.png')
+  qrcode.toFile(qrPath, qr).catch(err => console.error('❌ Erro ao salvar QR:', err))
 })
 
 client.on('ready', () => {
