@@ -36,7 +36,7 @@ const { inicializarScheduler } = require('./scheduler')
 
 const client = new Client({
   authStrategy: new LocalAuth({
-    dataPath: path.join(process.cwd(), 'data', 'session')
+    dataPath: './session'
   }),
   puppeteer: {
     executablePath: '/usr/bin/google-chrome-stable',
@@ -50,8 +50,7 @@ const client = new Client({
       '--disable-gpu',
       '--hide-scrollbars',
       '--disable-notifications'
-    ],
-    userDataDir: path.join(process.cwd(), 'data', 'session')
+    ]
   },
   qrMaxRetries: 5
 })
