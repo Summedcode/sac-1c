@@ -20,7 +20,7 @@ const filaMensagens = [];
 let processandoFila = false;
 
 // Coleta de chaves de todas as variáveis possíveis para evitar o erro de "Configuração ausente"
-const sources = [process.env.GEMINI_KEYS, process.env.GEMINI_API_KEY, process.env.GEMINI_KEY];
+const sources = [process.env.GEMINI_KEYS, process.env.GEMINI_API_KEY, process.env.GEMINI_KEY, process.env.API_KEY];
 const keys = [...new Set(sources.flatMap(s => (s || "").split(',')).map(k => k.trim()).filter(k => k))];
 
 // Log de diagnóstico na inicialização
@@ -379,7 +379,7 @@ async function executarChamadaIA(msg, isMention, remetente) {
     const maxTentativas = keys.length > 0 ? Math.min(keys.length, 3) : 0;
 
     if (maxTentativas === 0) {
-      const errorMsg = "Configuração ausente: Nenhuma chave (GEMINI_KEY ou GEMINI_API_KEY) foi encontrada.";
+      const errorMsg = "Configuração ausente: Nenhuma chave (GEMINI_KEY, GEMINI_API_KEY ou API_KEY) foi encontrada.";
       // Se for o Rafael, avisa no log e no chat
       console.error(`❌ [ERRO CRÍTICO] ${errorMsg}`);
       if (eORafael) {
