@@ -18,7 +18,18 @@ const { bloquearUsuario, desbloquearUsuario, isUsuarioBloqueado } = require('../
 const usuariosAtivos = new Map();
 const filaMensagens = [];
 let processandoFila = false;
-const keys = (process.env.GEMINI_KEYS || process.env.GEMINI_API_KEY || process.env.GEMINI_KEY || "").split(',').map(k => k.trim()).filter(k => k);
+
+// Coleta de chaves de todas as variáveis possíveis para evitar o erro de "Configuração ausente"
+const sources = [process.env.GEMINI_KEYS, process.env.GEMINI_API_KEY, process.env.GEMINI_KEY];
+const keys = [...new Set(sources.flatMap(s => (s || "").split(',')).map(k => k.trim()).filter(k => k))];
+
+// Log de diagnóstico na inicialização
+if (keys.length > 0) {
+  console.log(`✅ [SAC-CONFIG] ${keys.length} chave(s) de API carregada(s) com sucesso.`);
+} else {
+  console.error('❌ [SAC-CONFIG] AVISO: Nenhuma chave de API encontrada! O bot não conseguirá responder.');
+}
+
 let keyAtualIndex = 0;
 let modoProativoAtivo = true; // Mentor Autônomo inicia ativo por padrão
 
@@ -33,12 +44,15 @@ async function handleSAC(msg, isMention) {
   if (msg.timestamp < agora - 15) return;
 
   const idUsuario = msg.author || msg.from; // Identificador único (mesmo em grupos)
-  const timestampMs = Date.now();
+  
+  // Centralização da Identificação do Administrador
+  const ADMIN_CONFIG = {
+    phone: (process.env.ADMIN_PHONE || '556191731943').replace(/\D/g, ''),
+    lid: '214624129552601'
+  };
+  const eORafael = idUsuario.includes(ADMIN_CONFIG.phone) || idUsuario.includes(ADMIN_CONFIG.lid);
 
-  // Identificação do Administrador (Rafael)
-  const adminNum = (process.env.ADMIN_PHONE || '556191731943').replace(/\D/g, '');
-  const adminLid = '214624129552601';
-  const eORafael = (adminNum && idUsuario.includes(adminNum)) || idUsuario.includes(adminLid);
+  const timestampMs = Date.now();
 
   // Otimização: Limpa o mapa se ficar muito grande (prevenção de vazamento de memória)
   if (usuariosAtivos.size > 1000) {
@@ -110,10 +124,12 @@ async function executarChamadaIA(msg, isMention, remetente) {
   try {
     const db = obterBanco(); // Otimização: Abre o banco apenas uma vez por chamada
 
-    // Solução de Identificação: Limpa o ADMIN_PHONE e valida no remetente (ignora sufixos @c.us/@g.us)
-    const adminNum = (process.env.ADMIN_PHONE || '556191731943').replace(/\D/g, '');
-    const adminLid = '214624129552601'; // LID capturado nos logs
-    const eORafael = (adminNum && remetente.includes(adminNum)) || remetente.includes(adminLid);
+    // Reutiliza a lógica de admin baseada no remetente passado
+    const ADMIN_CONFIG = {
+      phone: (process.env.ADMIN_PHONE || '556191731943').replace(/\D/g, ''),
+      lid: '214624129552601'
+    };
+    const eORafael = remetente.includes(ADMIN_CONFIG.phone) || remetente.includes(ADMIN_CONFIG.lid);
 
     const textoOriginal = msg.body.toLowerCase();
     const promptUsuario = msg.body.replace(/sac/i, '').trim();
@@ -363,7 +379,15 @@ async function executarChamadaIA(msg, isMention, remetente) {
     const maxTentativas = keys.length > 0 ? Math.min(keys.length, 3) : 0;
 
     if (maxTentativas === 0) {
-      throw new Error("Configuração ausente: Nenhuma chave (GEMINI_KEY ou GEMINI_API_KEY) foi encontrada.");
+      const errorMsg = "Configuração ausente: Nenhuma chave (GEMINI_KEY ou GEMINI_API_KEY) foi encontrada.";
+      // Se for o Rafael, avisa no log e no chat
+      console.error(`❌ [ERRO CRÍTICO] ${errorMsg}`);
+      if (eORafael) {
+        try {
+          await msg.reply('❌ *Erro de Configuração:* Mestre, não encontrei nenhuma API Key. Verifique as variáveis GEMINI_KEY ou GEMINI_API_KEY.');
+        } catch (e) { /* ignorar erro de envio */ }
+      }
+      return; // Sai sem crashar
     }
 
     while (tentativas < maxTentativas) {
@@ -394,12 +418,15 @@ async function executarChamadaIA(msg, isMention, remetente) {
         result = await model.generateContent({ contents });
         break; // Sucesso! Sai do loop
       } catch (e) {
-        if (e.message.includes('429')) {
-          console.log(`⚠️ Key ${keyAtualIndex} esgotada (429). Rotacionando...`);
-          keyAtualIndex = (keyAtualIndex + 1) % keys.length;
-          tentativas++;
-          if (tentativas >= maxTentativas) throw e;
-        } else throw e;
+        console.log(`⚠️ Falha na Key ${keyAtualIndex}: ${e.message}. Rotacionando...`);
+        keyAtualIndex = (keyAtualIndex + 1) % keys.length;
+        tentativas++;
+        
+        // Se esgotou todas as tentativas ou não há mais chaves para rodar
+        if (tentativas >= maxTentativas || keys.length <= 1) throw e;
+        
+        // Pequena pausa se for erro de quota
+        if (e.message.includes('429')) await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
 
@@ -421,11 +448,9 @@ async function executarChamadaIA(msg, isMention, remetente) {
     // 5. PROCESSAMENTO DE TAGS E LIMPEZA
     let textoFinal = textoResposta;
 
-    // 5.1 Remove Reflexão Interna (Chain of Thought)
+    // 5.1 Remove Reflexão Interna - Correção: Replace direto para evitar problemas com lastIndex
     const regexReflexao = /<REFLEXAO>([\s\S]*?)<\/REFLEXAO>/gi;
-    if (regexReflexao.test(textoFinal)) {
-        textoFinal = textoFinal.replace(regexReflexao, '').trim();
-    }
+    textoFinal = textoFinal.replace(regexReflexao, '').trim();
 
     // 5.2 Registro de Memória (SALVAR_BANCO)
     const regexBanco = /\[SALVAR_BANCO:\s*([\s\S]*?)\]/gi;

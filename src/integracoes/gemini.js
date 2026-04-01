@@ -38,6 +38,11 @@ async function gerarTarefasComGemini() {
         'Content-Type': 'application/json'
       }
     })
+    
+    if (!respostaProgresso.ok) {
+      throw new Error(`Erro na API Local: ${respostaProgresso.status} ${respostaProgresso.statusText}`);
+    }
+
     const progresso = await respostaProgresso.json()
 
     if (!progresso.sucesso) {
@@ -70,12 +75,10 @@ PROGRESSO ATUAL:
 - Percentual concluído: ${progresso.dados.percentual}%
 
 Tarefas por matéria:
-${progresso.dados.por_materia
-  .map(
-    (m) =>
-      `- ${m.materia}: ${m.feitas} de ${m.total} concluídas (${((m.feitas / m.total) * 100).toFixed(0)}%)`
-  )
-  .join('\n')}
+${progresso.dados.por_materia.map((m) => {
+    const perc = m.total > 0 ? ((m.feitas / m.total) * 100).toFixed(0) : 0;
+    return `- ${m.materia}: ${m.feitas} de ${m.total} concluídas (${perc}%)`;
+}).join('\n')}
 
 INSTRUÇÕES:
 1. Identifique as matérias com menor progresso
