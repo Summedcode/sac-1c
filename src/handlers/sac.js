@@ -19,11 +19,11 @@ const filaMensagens = [];
 let processandoFila = false;
 
 // 🔑 Configuração de Chave Única (Conforme solicitado para evitar erro de rodízio)
-const apiKey = process.env.GEMINI_KEY || process.env.GEMINI_API_KEY;
+const apiKey = process.env.GEMINI_KEY;
 if (apiKey) {
-  console.log('✅ Chave única detectada e carregada.');
+  console.log('✅ Chave atual (SAC): ' + apiKey.substring(0, 5) + '...');
 } else {
-  console.error('❌ [SAC-CONFIG] AVISO: Nenhuma chave de API encontrada (GEMINI_KEY ou GEMINI_API_KEY)!');
+  console.error('❌ [SAC-CONFIG] AVISO: Nenhuma chave GEMINI_KEY encontrada no process.env!');
 }
 
 let modoProativoAtivo = true; // Mentor Autônomo inicia ativo por padrão

@@ -4,12 +4,12 @@ require("dotenv").config();
 async function testConnection() {
   console.log("🔍 Iniciando teste de diagnóstico de API...");
   
-  if (!process.env.GEMINI_API_KEY) {
-    console.error("❌ ERRO: GEMINI_API_KEY não encontrada no arquivo .env");
+  if (!process.env.GEMINI_KEY) {
+    console.error("❌ ERRO: GEMINI_KEY não encontrada no process.env");
     return;
   }
 
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
 
   // Testando o modelo que estava dando 404
   const modelId = "gemini-2.5-flash-lite"; 
