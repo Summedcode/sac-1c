@@ -5,7 +5,6 @@
  * 🛠️ DESCRIÇÃO: Handler para conversas diretas com a IA SAC via menção
  */
 
-const path = require('path');
 const fs = require('fs');
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
@@ -26,6 +25,21 @@ if (GEMINI_KEY) {
 
 let modoProativoAtivo = true; // Mentor Autônomo inicia ativo por padrão
 
+// 👑 Configuração do Administrador (Centralizada)
+const ADMIN_CONFIG = {
+  phone: (process.env.ADMIN_PHONE || '556191731943').replace(/\D/g, ''),
+  lid: '214624129552601'
+};
+
+// 🧠 Cache de Conhecimento (Lido apenas uma vez na inicialização para performance)
+const lerSeed = (relPath) => {
+  return fs.existsSync(relPath) ? fs.readFileSync(relPath, 'utf8') : '';
+};
+
+const sobreMimFixed = lerSeed('./src/handlers/sobre_mim.txt') || lerSeed('./src/knowledge/sobre_mim.txt');
+const modoONHBFixed = lerSeed('./src/knowledge/onhb/especialista.txt') || lerSeed('./src/handlers/especialista.txt');
+const personaFixed = lerSeed('./src/knowledge/persona.txt') || lerSeed('./src/handlers/persona.txt');
+
 /**
  * Entry point: Validações básicas, Anti-flood e Fila
  */
@@ -37,12 +51,6 @@ async function handleSAC(msg, isMention) {
   if (msg.timestamp < agora - 15) return;
 
   const idUsuario = msg.author || msg.from; // Identificador único (mesmo em grupos)
-  
-  // Centralização da Identificação do Administrador
-  const ADMIN_CONFIG = {
-    phone: (process.env.ADMIN_PHONE || '556191731943').replace(/\D/g, ''),
-    lid: '214624129552601'
-  };
   const eORafael = idUsuario.includes(ADMIN_CONFIG.phone) || idUsuario.includes(ADMIN_CONFIG.lid);
 
   const timestampMs = Date.now();
@@ -117,11 +125,6 @@ async function executarChamadaIA(msg, isMention, remetente) {
   try {
     const db = obterBanco(); // Otimização: Abre o banco apenas uma vez por chamada
 
-    // Reutiliza a lógica de admin baseada no remetente passado
-    const ADMIN_CONFIG = {
-      phone: (process.env.ADMIN_PHONE || '556191731943').replace(/\D/g, ''),
-      lid: '214624129552601'
-    };
     const eORafael = remetente.includes(ADMIN_CONFIG.phone) || remetente.includes(ADMIN_CONFIG.lid);
 
     const textoOriginal = msg.body.toLowerCase();
@@ -137,7 +140,7 @@ async function executarChamadaIA(msg, isMention, remetente) {
     // ️ Restrição de Coletividade: O SAC só responde se a mensagem vier de um grupo
     const chat = await msg.getChat();
     if (!chat.isGroup && !eORafael) {
-      return await msg.reply('Olá! Eu sou o SAC, um sistema dedicado ao aprendizado coletivo. Minhas funções de auxílio estão restritas ao uso dentro do grupo oficial da turma 1C.');
+      return await msg.reply('Olá! Eu sou o SAC. Minhas funções de auxílio estão restritas ao uso dentro do grupo oficial da turma 1C.');
     }
 
     // 🔒 Bloqueio por ID de Grupo (Opcional):
@@ -198,16 +201,6 @@ async function executarChamadaIA(msg, isMention, remetente) {
       }
     }
 
-    // LEITURA DE SEEDS
-    const lerSeed = (relPath) => {
-      const p = path.join(__dirname, relPath);
-      return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '';
-    };
-
-    const sobreMim = lerSeed('../knowledge/sobre_mim.txt') || lerSeed('./sobre_mim.txt');
-    const modoONHB = lerSeed('../knowledge/onhb/especialista.txt') || lerSeed('./especialista.txt');
-    const persona = lerSeed('../knowledge/persona.txt') || lerSeed('./persona.txt');
-
     // 3. RECUPERAÇÃO DE CONTEXTO (LIMITADO PARA EVITAR LENTIDÃO)
     let memorias = "";
     let gradeOficial = "";
@@ -267,9 +260,9 @@ async function executarChamadaIA(msg, isMention, remetente) {
     `;
 
     const systemInstruction = `
-        ${persona}
+        ${personaFixed}
         Você é o SAC oficial do EduSESC 2026. Use a data atual ${dataFormatada} como referência absoluta.
-        ADMINISTRADOR: Rafael Magalhães (Prioridade executiva e obediência técnica total). INFO: ${sobreMim}
+        ADMINISTRADOR: Rafael Magalhães (Prioridade executiva e obediência técnica total). INFO: ${sobreMimFixed}
         
         A) CÁLCULO DE NOTAS E RECUPERAÇÃO (ALGORITMO):
         Média: (N1 + N2) / 2. Aprovação: 6,0.
@@ -331,7 +324,7 @@ async function executarChamadaIA(msg, isMention, remetente) {
         - Para atualizar o moral do aluno: [UPDATE_PERFIL: ${remetente}|nome|novo_nivel|novas_notas]
         - IMPORTANTE: Coloque sua reflexão interna entre as tags <REFLEXAO>...</REFLEXAO>. Ela será removida antes de ser enviada ao usuário.
 
-        ESPECIALISTA ONHB: ${modoONHB}
+        ESPECIALISTA ONHB: ${modoONHBFixed}
         
         CONTEXTO E MEMÓRIA DE LONGO PRAZO:
         ${gradeOficial}

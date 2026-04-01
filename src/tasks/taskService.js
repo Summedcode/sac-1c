@@ -33,7 +33,7 @@ function getTarefasHoje() {
   return getDb().prepare(`
     SELECT * FROM tarefas
     WHERE data_vencimento = ?
-    AND concluida = 0
+    AND concluida = 0 AND ativo = 1
     ORDER BY materia
   `).all(hoje)
 }
@@ -50,7 +50,7 @@ function getTarefasSemana() {
 
   return getDb().prepare(`
     SELECT * FROM tarefas
-    WHERE data_vencimento BETWEEN ? AND ?
+    WHERE data_vencimento BETWEEN ? AND ? AND ativo = 1
     AND concluida = 0
     ORDER BY data_vencimento, materia
   `).all(hoje, fimSemana)
@@ -62,7 +62,7 @@ function getTarefasSemana() {
 function getProvas() {
   return getDb().prepare(`
     SELECT * FROM tarefas
-    WHERE tipo = 'prova'
+    WHERE tipo = 'prova' AND ativo = 1
     AND concluida = 0
     ORDER BY data_vencimento
   `).all()
@@ -230,13 +230,13 @@ function marcarConcluida(id) {
 // BUSCAR estatísticas de tarefas
 // ─────────────────────────────────────
 function getEstatisticas() {
-  const total = getDb().prepare('SELECT COUNT(*) as count FROM tarefas').get()
-  const concluidas = getDb().prepare('SELECT COUNT(*) as count FROM tarefas WHERE concluida = 1').get()
-  const pendentes = getDb().prepare('SELECT COUNT(*) as count FROM tarefas WHERE concluida = 0').get()
+  const total = getDb().prepare('SELECT COUNT(*) as count FROM tarefas WHERE ativo = 1').get()
+  const concluidas = getDb().prepare('SELECT COUNT(*) as count FROM tarefas WHERE concluida = 1 AND ativo = 1').get()
+  const pendentes = getDb().prepare('SELECT COUNT(*) as count FROM tarefas WHERE concluida = 0 AND ativo = 1').get()
   const hoje = getDb().prepare(`
     SELECT COUNT(*) as count FROM tarefas
     WHERE data_vencimento = ?
-    AND concluida = 0
+    AND concluida = 0 AND ativo = 1
   `).get(new Date().toISOString().split('T')[0])
 
   return {

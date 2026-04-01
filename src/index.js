@@ -5,18 +5,17 @@
  * 🛠️ DESCRIÇÃO: Core do Bot de WhatsApp - Handlers e Eventos
  */
 
-const path = require('path')
 const { Client, LocalAuth } = require('whatsapp-web.js')
 const qrcodeTerminal = require('qrcode-terminal')
 const qrcode = require('qrcode')
 
-console.log('--- DEBUG DE AMBIENTE ---');
-console.log('Chave GEMINI_KEY existe?', !!process.env.GEMINI_KEY);
-console.log('Todas as chaves disponíveis:', Object.keys(process.env).filter(k => k.includes('KEY')));
-console.log('LISTA DE VARS:', Object.keys(process.env));
+if (process.env.NODE_ENV !== 'production') {
+  console.log('--- DEBUG DE AMBIENTE ---');
+  console.log('Chave GEMINI_KEY existe?', !!process.env.GEMINI_KEY);
+}
 
 // 🔑 Chave única vinda do process.env
-const GEMINI_KEY = process.env.GEMINI_KEY;
+const GEMINI_KEY = process.env.GEMINI_KEY || process.env.GEMINI_API_KEY;
 
 // 📦 Inicializa o banco de dados
 const { statusBanco } = require('./database')
@@ -44,7 +43,7 @@ const { inicializarScheduler } = require('./scheduler')
 
 const client = new Client({
   authStrategy: new LocalAuth({
-    dataPath: path.join(process.cwd(), 'data', 'session')
+    dataPath: './data/session'
   }),
   puppeteer: {
     args: [
@@ -71,8 +70,7 @@ client.on('qr', (qr) => {
   qrcodeTerminal.generate(qr, { small: true })
 
   // Salva o QR Code como imagem para visualização via Web (Railway)
-  const qrPath = path.join(process.cwd(), 'data', 'qr.png')
-  qrcode.toFile(qrPath, qr).catch(err => console.error('❌ Erro ao salvar QR:', err))
+  qrcode.toFile('./data/qr.png', qr).catch(err => console.error('❌ Erro ao salvar QR:', err))
 })
 
 client.on('ready', () => {

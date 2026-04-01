@@ -48,10 +48,14 @@ function inicializarScheduler(whatsappClient) {
         return `📌 *${materia.toUpperCase()}* — ${t.descricao}`
       }).join('\n\n')
 
-      // Nota: Aqui você precisaria ter o número do grupo/pessoa para enviar
-      // Por enquanto, apenas registra no log
-      registrarAcao('SISTEMA', 'lembrete_diario', `${tarefas.length} tarefas enviadas`)
-      console.log(`✅ Lembrete enviado: ${tarefas.length} tarefas`)
+      const targetGroup = process.env.GROUP_ID;
+      if (targetGroup && client) {
+        client.sendMessage(targetGroup, `🌅 *BOM DIA, 1C!*\n\nAqui estão as atividades para hoje:\n\n${lista}`);
+        registrarAcao('SISTEMA', 'lembrete_diario', `${tarefas.length} tarefas enviadas para ${targetGroup}`);
+        console.log(`✅ Lembrete enviado: ${tarefas.length} tarefas`);
+      } else {
+        console.log('⚠️ Lembrete gerado, mas GROUP_ID não configurado no .env');
+      }
     } catch (erro) {
       registrarErro('scheduler_lembrete', erro)
     }

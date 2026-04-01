@@ -22,7 +22,7 @@ const fs = require('fs')
 
 const { GoogleGenerativeAI } = require('@google/generative-ai')
 
-const GEMINI_KEY = process.env.GEMINI_KEY;
+const GEMINI_KEY = process.env.GEMINI_KEY || process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(GEMINI_KEY)
 
 async function gerarTarefasComGemini() {
@@ -101,7 +101,7 @@ Garanta que o JSON é válido e parseável. Tarefas devem ser específicas e aci
     `
 
     // 3. LISTAR MODELOS DISPONÍVEIS
-    const modelId = 'gemini-2.5-flash-lite';
+    const modelId = 'gemini-1.5-flash';
 
     // 4. CHAMAR GEMINI
     console.log(`🧠 2️⃣ Enviando para Gemini (modelo: ${modelId})...`)

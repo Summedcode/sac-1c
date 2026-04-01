@@ -19,11 +19,10 @@
  *   ou npm start (se configurado em package.json)
  */
 
-const path = require('path')
 const dotenv = require('dotenv')
 
 // Carrega variáveis de ambiente
-dotenv.config({ path: path.join(__dirname, '.env') })
+dotenv.config()
 
 console.log(`
 ╔════════════════════════════════════════╗
