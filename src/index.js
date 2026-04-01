@@ -13,6 +13,7 @@ const qrcode = require('qrcode')
 console.log('--- DEBUG DE AMBIENTE ---');
 console.log('Chave GEMINI_KEY existe?', !!process.env.GEMINI_KEY);
 console.log('Todas as chaves disponíveis:', Object.keys(process.env).filter(k => k.includes('KEY')));
+console.log('LISTA DE VARS:', Object.keys(process.env));
 
 // 🔑 Chave única vinda do process.env
 const GEMINI_KEY = process.env.GEMINI_KEY;
