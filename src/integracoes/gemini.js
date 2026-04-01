@@ -19,11 +19,11 @@
 
 const path = require('path')
 const fs = require('fs')
-require('dotenv').config({ path: path.join(__dirname, '../../.env') })
 
 const { GoogleGenerativeAI } = require('@google/generative-ai')
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+const apiKey = process.env.GEMINI_KEY || process.env.GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(apiKey)
 
 async function gerarTarefasComGemini() {
   console.log('🤖 Iniciando Gemini...\n')

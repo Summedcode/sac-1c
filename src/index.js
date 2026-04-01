@@ -11,9 +11,12 @@ const qrcodeTerminal = require('qrcode-terminal')
 const qrcode = require('qrcode')
 
 // 🔑 Validação de Chave de API (Debug)
-const apiKey = process.env.GEMINI_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
-console.log('Chave encontrada:', apiKey ? 'Sim' : 'Não');
-if (!apiKey) console.warn('⚠️ AVISO: Nenhuma chave Gemini detectada. O SAC pode não funcionar corretamente.');
+const apiKey = process.env.GEMINI_KEY || process.env.GEMINI_API_KEY;
+if (apiKey) {
+  console.log('✅ Chave única detectada e carregada.');
+} else {
+  console.warn('⚠️ AVISO: Nenhuma chave Gemini detectada (GEMINI_KEY ou GEMINI_API_KEY). O SAC não funcionará corretamente.');
+}
 
 // 📦 Inicializa o banco de dados
 const { statusBanco } = require('./database')

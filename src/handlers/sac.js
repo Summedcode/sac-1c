@@ -7,7 +7,6 @@
 
 const path = require('path');
 const fs = require('fs');
-require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { registrarAcao, registrarErro } = require('../utils/logger');
@@ -19,18 +18,14 @@ const usuariosAtivos = new Map();
 const filaMensagens = [];
 let processandoFila = false;
 
-// Coleta de chaves de todas as variáveis possíveis para evitar o erro de "Configuração ausente"
-const sources = [process.env.GEMINI_KEYS, process.env.GEMINI_API_KEY, process.env.GEMINI_KEY, process.env.API_KEY];
-const keys = [...new Set(sources.flatMap(s => (s || "").split(',')).map(k => k.trim()).filter(k => k))];
-
-// Log de diagnóstico na inicialização
-if (keys.length > 0) {
-  console.log(`✅ [SAC-CONFIG] ${keys.length} chave(s) de API carregada(s) com sucesso.`);
+// 🔑 Configuração de Chave Única (Conforme solicitado para evitar erro de rodízio)
+const apiKey = process.env.GEMINI_KEY || process.env.GEMINI_API_KEY;
+if (apiKey) {
+  console.log('✅ Chave única detectada e carregada.');
 } else {
-  console.error('❌ [SAC-CONFIG] AVISO: Nenhuma chave de API encontrada! O bot não conseguirá responder.');
+  console.error('❌ [SAC-CONFIG] AVISO: Nenhuma chave de API encontrada (GEMINI_KEY ou GEMINI_API_KEY)!');
 }
 
-let keyAtualIndex = 0;
 let modoProativoAtivo = true; // Mentor Autônomo inicia ativo por padrão
 
 /**
@@ -373,66 +368,46 @@ async function executarChamadaIA(msg, isMention, remetente) {
       }
     }
 
-    // 🤖 CHAMADA IA COM RODÍZIO DE CHAVES (Tenta até 3 vezes se houver erro 429)
-    let result = null;
-    let tentativas = 0;
-    const maxTentativas = keys.length > 0 ? Math.min(keys.length, 3) : 0;
-
-    if (maxTentativas === 0) {
-      const errorMsg = "Configuração ausente: Nenhuma chave (GEMINI_KEY, GEMINI_API_KEY ou API_KEY) foi encontrada.";
+    // 🤖 CHAMADA IA COM CHAVE ÚNICA (Removida lógica de rodízio)
+    if (!apiKey) {
+      const errorMsg = "Configuração ausente: Nenhuma chave (GEMINI_KEY ou GEMINI_API_KEY) encontrada.";
       // Se for o Rafael, avisa no log e no chat
       console.error(`❌ [ERRO CRÍTICO] ${errorMsg}`);
       if (eORafael) {
         try {
-          await msg.reply('❌ *Erro de Configuração:* Mestre, não encontrei nenhuma API Key. Verifique as variáveis GEMINI_KEY ou GEMINI_API_KEY.');
+          await msg.reply('❌ *Erro de Configuração:* Mestre, não encontrei nenhuma API Key nas variáveis do Railway.');
         } catch (e) { /* ignorar erro de envio */ }
       }
       return; // Sai sem crashar
     }
 
-    while (tentativas < maxTentativas) {
-      try {
-        const currentKey = keys[keyAtualIndex];
-        const genAI = new GoogleGenerativeAI(currentKey);
-        const model = genAI.getGenerativeModel({ 
-          model: "gemini-2.5-flash-lite",
-          systemInstruction,
-        }, { 
-          apiVersion: 'v1beta' 
-        });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash-lite",
+      systemInstruction,
+    }, { 
+      apiVersion: 'v1beta' 
+    });
 
-        const promptComContexto = `
-        [REMETENTE_ID: ${remetente}]
-        [REMETENTE_NOME: ${remetenteNome}]
-        [MSG_TEXTO: ${promptUsuario || (mediaPart ? '(Analisando conteúdo da imagem enviada...)' : '(Mensagem sem texto)')}]
-        [VISAO_ATIVA: ${!!mediaPart}]
-        
-        Lembre-se: Inicie com <REFLEXAO>, depois dê a resposta e, se necessário, use as tags de sistema ao final.
-        `;
+    const promptComContexto = `
+    [REMETENTE_ID: ${remetente}]
+    [REMETENTE_NOME: ${remetenteNome}]
+    [MSG_TEXTO: ${promptUsuario || (mediaPart ? '(Analisando conteúdo da imagem enviada...)' : '(Mensagem sem texto)')}]
+    [VISAO_ATIVA: ${!!mediaPart}]
+    
+    Lembre-se: Inicie com <REFLEXAO>, depois dê a resposta e, se necessário, use as tags de sistema ao final.
+    `;
 
-        const contents = [{ 
-          role: 'user', 
-          parts: mediaPart ? [{ text: promptComContexto }, mediaPart] : [{ text: promptComContexto }] 
-        }];
+    const contents = [{ 
+      role: 'user', 
+      parts: mediaPart ? [{ text: promptComContexto }, mediaPart] : [{ text: promptComContexto }] 
+    }];
 
-        result = await model.generateContent({ contents });
-        break; // Sucesso! Sai do loop
-      } catch (e) {
-        console.log(`⚠️ Falha na Key ${keyAtualIndex}: ${e.message}. Rotacionando...`);
-        keyAtualIndex = (keyAtualIndex + 1) % keys.length;
-        tentativas++;
-        
-        // Se esgotou todas as tentativas ou não há mais chaves para rodar
-        if (tentativas >= maxTentativas || keys.length <= 1) throw e;
-        
-        // Pequena pausa se for erro de quota
-        if (e.message.includes('429')) await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    }
+    const result = await model.generateContent({ contents });
 
     // Verificação de segurança para evitar "Cannot read properties of undefined (reading 'response')"
-    if (!result || typeof result.response === 'undefined') {
-      throw new Error("A API do Gemini não retornou um objeto de resposta válido.");
+    if (!result || !result.response) {
+      throw new Error("A IA não retornou um objeto de resposta válido.");
     }
 
     const response = await result.response;
