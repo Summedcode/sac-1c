@@ -10,13 +10,12 @@ const { Client, LocalAuth } = require('whatsapp-web.js')
 const qrcodeTerminal = require('qrcode-terminal')
 const qrcode = require('qrcode')
 
-// 🔑 Validação de Chave de API (Debug)
-const apiKey = process.env.GEMINI_KEY;
-if (apiKey) {
-  console.log('✅ Chave atual (Index): ' + apiKey.substring(0, 5) + '...');
-} else {
-  console.warn('⚠️ AVISO: Nenhuma chave GEMINI_KEY detectada no process.env. O SAC não funcionará corretamente.');
-}
+console.log('--- DEBUG DE AMBIENTE ---');
+console.log('Chave GEMINI_KEY existe?', !!process.env.GEMINI_KEY);
+console.log('Todas as chaves disponíveis:', Object.keys(process.env).filter(k => k.includes('KEY')));
+
+// 🔑 Chave única vinda do process.env
+const GEMINI_KEY = process.env.GEMINI_KEY;
 
 // 📦 Inicializa o banco de dados
 const { statusBanco } = require('./database')

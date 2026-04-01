@@ -1,6 +1,4 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-require("dotenv").config();
-
 async function testConnection() {
   console.log("🔍 Iniciando teste de diagnóstico de API...");
   

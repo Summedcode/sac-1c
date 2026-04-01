@@ -19,11 +19,9 @@ const filaMensagens = [];
 let processandoFila = false;
 
 // 🔑 Configuração de Chave Única (Conforme solicitado para evitar erro de rodízio)
-const apiKey = process.env.GEMINI_KEY;
-if (apiKey) {
-  console.log('✅ Chave atual (SAC): ' + apiKey.substring(0, 5) + '...');
-} else {
-  console.error('❌ [SAC-CONFIG] AVISO: Nenhuma chave GEMINI_KEY encontrada no process.env!');
+const GEMINI_KEY = process.env.GEMINI_KEY;
+if (GEMINI_KEY) {
+  console.log('✅ Chave atual (SAC): ' + GEMINI_KEY.substring(0, 5) + '...');
 }
 
 let modoProativoAtivo = true; // Mentor Autônomo inicia ativo por padrão
@@ -369,19 +367,19 @@ async function executarChamadaIA(msg, isMention, remetente) {
     }
 
     // 🤖 CHAMADA IA COM CHAVE ÚNICA (Removida lógica de rodízio)
-    if (!apiKey) {
-      const errorMsg = "Configuração ausente: Nenhuma chave (GEMINI_KEY ou GEMINI_API_KEY) encontrada.";
+    if (!GEMINI_KEY) {
+      const errorMsg = "Configuração ausente: GEMINI_KEY não encontrada no process.env.";
       // Se for o Rafael, avisa no log e no chat
       console.error(`❌ [ERRO CRÍTICO] ${errorMsg}`);
       if (eORafael) {
         try {
-          await msg.reply('❌ *Erro de Configuração:* Mestre, não encontrei nenhuma API Key nas variáveis do Railway.');
+          await msg.reply('❌ *Erro de Configuração:* Mestre, não encontrei a GEMINI_KEY nas variáveis do Railway.');
         } catch (e) { /* ignorar erro de envio */ }
       }
       return; // Sai sem crashar
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
+    const genAI = new GoogleGenerativeAI(GEMINI_KEY);
     const model = genAI.getGenerativeModel({ 
       model: "gemini-2.5-flash-lite",
       systemInstruction,
