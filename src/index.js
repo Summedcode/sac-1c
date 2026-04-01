@@ -15,7 +15,7 @@ const { statusBanco } = require('./database')
 console.log('\n🚀 Iniciando SAC-1C...\n')
 
 // Handlers
-const { handleBomdia, handlePing, handleAjuda } = require('./handlers/geral')
+const { handleBomdia, handlePing, handleAjuda, handleChangelog } = require('./handlers/geral')
 const {
   handleAdd,
   handleHoje,
@@ -72,6 +72,21 @@ client.on('ready', () => {
   inicializarScheduler(client)
 })
 
+// Evento: Quando o bot é adicionado a um grupo
+client.on('group_join', async (notification) => {
+  try {
+    // Verifica se quem entrou foi o próprio bot (compara o ID)
+    const meuId = client.info.wid._serialized;
+    if (!notification.recipientIds.includes(meuId)) return;
+
+    const chat = await notification.getChat();
+    console.log(`✨ SAC adicionado ao grupo: ${chat.name} (ID: ${chat.id._serialized})`);
+    await chat.sendMessage('Saudações! Eu sou o SAC-1C, o Mentor Analítico da turma. Minhas diretrizes estão configuradas para auxílio acadêmico e monitoramento de atividades.');
+  } catch (err) {
+    console.error('Erro ao processar entrada em grupo:', err);
+  }
+});
+
 // ─────────────────────────────────────
 // Handler de Mensagens
 // ─────────────────────────────────────
@@ -93,6 +108,7 @@ client.on('message', async (msg) => {
     if (texto === '!bomdia') return await handleBomdia(msg)
     if (texto === '!ping') return await handlePing(msg)
     if (texto === '!ajuda') return await handleAjuda(msg)
+    if (texto === '!changelog') return await handleChangelog(msg)
 
     // Comandos de tarefas
     if (texto.startsWith('!add')) return await handleAdd(msg)

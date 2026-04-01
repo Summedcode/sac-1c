@@ -3,6 +3,35 @@
 const { registrarAcao } = require('../utils/logger')
 
 /**
+ * Comando !changelog — Exibe as últimas atualizações do sistema
+ */
+async function handleChangelog(msg) {
+  try {
+    const dataBrasilia = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
+    const nomeMes = dataBrasilia.toLocaleString('pt-BR', { month: 'long' });
+    
+    const changelog = `
+🚀 *LOG DE ATUALIZAÇÕES - SAC-1C* 🚀
+
+📅 *Calendário Acadêmico 2026:* Consolidado integralmente (feriados, recessos e sábados letivos).
+🍱 *Cardápio Dinâmico:* Lógica de validação mensal ativa (Vigência: ${nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1)}/2026).
+📊 *Algoritmo de Notas:* Implementada regra de Média e Recuperação com *Teto de 6.0* (Regra SESC).
+🛡️ *Otimização Anti-flood:* Tempo de resposta reduzido para 5 segundos.
+👑 *Acesso VIP:* Bypass de restrições para o Administrador (Rafael) em chats privados.
+🤖 *Inteligência:* Atualizado suporte para chaves de API dinâmicas e correção de crash em respostas vazias.
+👥 *Integração:* Auto-apresentação do Mentor ao entrar em novos grupos.
+
+_Solicitado por: Rafael Magalhães_
+    `;
+    await msg.reply(changelog.trim());
+    registrarAcao(msg.from, 'changelog', 'Log de mudanças visualizado');
+  } catch (erro) {
+    console.error('❌ Erro em !changelog:', erro);
+    await msg.reply('❌ Erro ao recuperar log de mudanças.');
+  }
+}
+
+/**
  * Comando !bomdia
  */
 async function handleBomdia(msg) {
@@ -40,6 +69,7 @@ async function handleAjuda(msg) {
       '!bomdia — mensagem de bom dia\n' +
       '!ping — testa se o bot está online\n' +
       '!ajuda — mostra esse menu\n\n' +
+      '!changelog — últimas atualizações do sistema\n\n' +
       '*Tarefas:*\n' +
       '!add <matéria> | <tipo> | <data> | <descrição>\n' +
       '!hoje — tarefas de hoje\n' +
@@ -69,5 +99,6 @@ async function handleAjuda(msg) {
 module.exports = {
   handleBomdia,
   handlePing,
-  handleAjuda
+  handleAjuda,
+  handleChangelog
 }
