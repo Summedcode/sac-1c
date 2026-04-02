@@ -125,6 +125,8 @@ async function executarChamadaIA(msg, isMention, remetente) {
   try {
     const db = obterBanco(); // Otimização: Abre o banco apenas uma vez por chamada
 
+    const remetenteNome = remetente.includes(ADMIN_CONFIG.phone) || remetente.includes(ADMIN_CONFIG.lid) ? 'MESTRE RAFAEL' : (msg.pushname || 'Calouro');
+    const dataBrasilia = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
     const eORafael = remetente.includes(ADMIN_CONFIG.phone) || remetente.includes(ADMIN_CONFIG.lid);
 
     const textoOriginal = msg.body.toLowerCase();
@@ -135,6 +137,23 @@ async function executarChamadaIA(msg, isMention, remetente) {
       return await msg.reply('Estou online e acompanhando o fluxo. Como posso contribuir tecnicamente com as atividades do 1C agora?');
     } else if (!promptUsuario && !msg.hasMedia) {
       return;
+    }
+
+    // 🛑 FILTRO DE RELEVÂNCIA (Economia de Tokens): Ignora perguntas irrelevantes ou sem sentido acadêmico
+    const academicKeywords = [
+      'prova', 'dever', 'trabalho', 'estudo', 'nota', 'materia', 'horario', 'aula', 
+      'onhb', 'simulado', 'data', 'calendario', 'cardapio', 'recuperação', 'media', 
+      'ajuda', 'explicar', 'como', 'onde', 'quando', 'atividade', 'exercicio', 'lição',
+      'anotar', 'salvar', 'lembrar', 'que dia', 'qual', 'quem foi', 'grade','data'
+    ];
+    
+    const promptLower = promptUsuario.toLowerCase();
+    const intentNonsense = /você é|vc é|vcv|baiano|paulista|carioca|gay|homem|mulher|mora|nome|idade|signo|casado|namorada|robô|\bia\b|inteligencia|seu pai|sua mae/i.test(promptLower);
+    const semContextoAcademico = !academicKeywords.some(k => promptLower.includes(k));
+
+    if (semContextoAcademico && intentNonsense && !eORafael) {
+      console.log(`🚫 SAC ignorou pergunta irrelevante de ${remetenteNome}: "${promptUsuario}"`);
+      return; // Ignora silenciosamente para poupar a cota da API
     }
 
     // ️ Restrição de Coletividade: O SAC só responde se a mensagem vier de um grupo
@@ -166,6 +185,53 @@ async function executarChamadaIA(msg, isMention, remetente) {
           return await msg.reply(`✅ Memória Injetada: "${conteudo}"`);
         } catch (e) {
           return await msg.reply("❌ Erro ao acessar SQLite.");
+        }
+      }
+
+      // 👑 COMANDO DE ADMIN: "SAC, apague [nome da chave]" (Exclusão Permanente)
+      const matchApagar = textoOriginal.match(/sac,?\s+apague\s+(.+)/i);
+      if (matchApagar) {
+        const chave = matchApagar[1].trim();
+        if (chave.length < 3) {
+          return await msg.reply("⚠️ Mestre, a chave de busca é muito curta. Por favor, seja mais específico para evitar deleções acidentais.");
+        }
+
+        try {
+          const result = db.prepare("DELETE FROM memoria_contextual WHERE informacao LIKE ?").run(`%${chave}%`);
+          if (result.changes > 0) {
+            return await msg.reply(`✅ Entendido, Rafael. Localizei e removi permanentemente as entradas que continham "${chave}".`);
+          } else {
+            return await msg.reply(`⚠️ Mestre, não encontrei registros correspondentes à chave "${chave}" no banco.`);
+          }
+        } catch (e) {
+          return await msg.reply("❌ Erro técnico ao processar a exclusão no SQLite.");
+        }
+      }
+
+      // 👑 COMANDO DE ADMIN: Registro com Validade Dinâmica
+      // Exemplo: Salvar: [Aviso Importante] Validade: [30/05/2026]
+      const regexSalvarValidade = /salvar:\s*\[(.*?)\]\s*validade:\s*\[(.*?)\]/i;
+      const matchSalvar = msg.body.match(regexSalvarValidade);
+      if (matchSalvar) {
+        const conteudo = matchSalvar[1].trim();
+        const dataOriginal = matchSalvar[2].trim();
+        
+        let dataExpiracao = null;
+        const partesData = dataOriginal.split('/').map(p => p.trim());
+        if (partesData.length === 3) {
+          // Garante o formato YYYY-MM-DD com padding de zeros para comparação SQL correta
+          const dia = partesData[0].padStart(2, '0');
+          const mes = partesData[1].padStart(2, '0');
+          // Força o ano para 4 dígitos se vier apenas 2 (ex: 26 -> 2026)
+          const ano = partesData[2].length === 2 ? `20${partesData[2]}` : partesData[2];
+          dataExpiracao = `${ano}-${mes}-${dia}`;
+        }
+
+        try {
+          db.prepare("INSERT INTO memoria_contextual (informacao, data_expiracao) VALUES (?, ?)").run(conteudo, dataExpiracao);
+          return await msg.reply(`✅ Memória temporária injetada com sucesso! Válida até ${dataOriginal}.`);
+        } catch (e) {
+          return await msg.reply("❌ Erro ao salvar informação com validade dinâmica.");
         }
       }
 
@@ -205,6 +271,10 @@ async function executarChamadaIA(msg, isMention, remetente) {
     let memorias = "";
     let gradeOficial = "";
     try {
+      // 🕒 LÓGICA GLOBAL DE VERIFICAÇÃO DE TEMPO (Fuso Brasília)
+      const hojeISO = dataBrasilia.toISOString().split('T')[0];
+      db.prepare("DELETE FROM memoria_contextual WHERE data_expiracao IS NOT NULL AND data_expiracao < ?").run(hojeISO);
+
       // Garante que a Grade Horária esteja sempre presente, independente do limite de 10 mensagens
       const gradeRow = db.prepare("SELECT informacao FROM memoria_contextual WHERE informacao LIKE '%GRADE HORÁRIA OFICIAL%' LIMIT 1").get();
       if (gradeRow) gradeOficial = `📋 CONTEÚDO MESTRE:\n${gradeRow.informacao}\n`;
@@ -229,12 +299,10 @@ async function executarChamadaIA(msg, isMention, remetente) {
     }
 
     // 4. CONSTRUÇÃO DA CONSCIÊNCIA (SYSTEM INSTRUCTION)
-    const remetenteNome = eORafael ? 'MESTRE RAFAEL' : (msg.pushname || 'Calouro');
     const agoraReal = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'long', hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'long' });
 
     // Lógica de Calendário e Cardápio Acadêmico 2026
     // Otimização: Força o fuso horário de Brasília para evitar virada de mês antecipada em servidores gringos
-    const dataBrasilia = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
     const dataFormatada = dataBrasilia.toLocaleDateString('pt-BR');
     const mesAtual = dataBrasilia.getMonth(); // Janeiro = 0, Abril = 3
     const nomeMesAtual = dataBrasilia.toLocaleString('pt-BR', { month: 'long' });

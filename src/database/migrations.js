@@ -98,16 +98,15 @@ const MIGRATIONS = {
         );
       `)
     }
-  }
+  },
 
-  // Exemplo de uma futura migration:
-  // 2: {
-  //   id: 2,
-  //   descricao: 'Adiciona coluna de tags',
-  //   up: (db) => {
-  //     db.exec(`ALTER TABLE tarefas ADD COLUMN tags TEXT;`)
-  //   }
-  // }
+  5: {
+    id: 5,
+    descricao: 'Adição de data_expiracao na memoria_contextual para limpeza automática',
+    up: (db) => {
+      db.exec(`ALTER TABLE memoria_contextual ADD COLUMN data_expiracao TEXT;`)
+    }
+  }
 }
 
 /**
